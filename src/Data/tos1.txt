@@ -55,6 +55,7 @@ Capture Censoring is a best-effort endeavor. There may be information that is in
     Censored Data: The Chronofoil Software censors all Chat messages before uploading a Capture in any way to the Chronofoil Services. The Chronofoil Services do not intend to store Captures containing chat messages.
                    The Chronofoil Software censors all in-game letters (those sent via the mail system) before uploading a Capture in any way to the Chronofoil Services. The Chronofoil Services do not intend to store Captures containing in-game letters.
                    The Chronofoil Software censors the user's Session ID before uploading a Capture in any way to the Chronofoil Services. The Chronofoil Services do not intend to store Captures containing player Session IDs.
+                   The Chronofoil Software censors the user's IP address before uploading a Capture in any way to the Chronofoil Services. The Chronofoil Services do not intend to store Captures containing player IP addresses.
     Uncensored Data: Assume all other data not explicitly referred to above is not censored.
     Non-Exhaustive Examples of Uncensored Data: Characters on the logged in Service Account
                                                 Days subscribed and days left on subscription
@@ -69,7 +70,7 @@ Capture Censoring is a best-effort endeavor. There may be information that is in
                                                 Your Characters' Fishing Log status
                                                 Home layouts that you visit during a Capture, including Homes that are closed to the public
                                                 The contents of a Home guest book
-    
+
 By accepting these Terms, you agree that any Capture you provide to Chronofoil is provided with the express understanding of the above.
 
 6. Disclaimers
