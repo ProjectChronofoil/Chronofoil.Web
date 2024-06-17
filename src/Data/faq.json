@@ -22,7 +22,7 @@
     },
     {
       "Question": "How do I know which captures to upload? What if I don't remember what I did during it?",
-      "Answer": "If you don't know what you did during a capture and that makes you hesitant to upload it - don't. Period. If you are uncomfortable with the idea of possibly uploading a specific action you've performed, this plugin may not be for you. Privacy is extremely important to Chronofoil, and if its users don't feel comfortable uploading, they should not be pressured to. That being said, down the pipeline, a feature is planned that will recap and describe what you did during a capture."
+      "Answer": "If you don't know what you did during a capture and that makes you hesitant to upload it - don't. Period. If you are uncomfortable with the idea of possibly uploading a specific action you've performed, this plugin may not be for you. Privacy is extremely important to Chronofoil, and if its users don't feel comfortable uploading, they should not be pressured to. If you would still like to contribute, you can always restrict your captures to End of Service for both Metrics and Public times. This would mean none of your data is public until the game is taken offline. All that being said, down the pipeline, a feature is planned that will recap and describe what you did during a capture."
     },
     {
       "Question": "Is Chronofoil open source?",
@@ -34,7 +34,11 @@
     },
     {
       "Question": "What is the \"Chronofoil Metrics System\"?",
-      "Answer": "Definitely not a unit of measurement. There are ways that developers analyze large amounts of data to determine patterns, get insight, find specific cases, and more. There are existing tools for the game that collect data, but Chronofoil aims to be much more than a collector of specific data. The goal is to provide an interface for developers to utilize Chronofoil captures that have met their \"metrics time\" (the time at which the uploader has provided consent for their capture to be used for this purpose) and query them for insights, many possible questions are described above. This system is not in development yet, but it will be soon."
+      "Answer": "Definitely not a unit of measurement. There are ways that developers analyze large amounts of data to determine patterns, get insight, find specific cases, and more. There are existing tools for the game that collect data, but Chronofoil aims to be much more than a collector of specific data. The goal is to provide an interface for developers to utilize Chronofoil captures that have met their \"metrics time\" (the time at which the uploader has provided consent for their capture to be used for this purpose) and query them for insights, many possible questions are described above. This system is in the planning stages, and will begin development soon after Dawntrail release. It will also be open source."
+    },
+    {
+      "Question": "Where can I download captures?",
+      "Answer": "Captures that have hit their \"public time\" will be available on the Chronofoil site or in the plugin. This feature is in development and will be available shortly post-Dawntrail."
     },
     {
       "Question": "Do you take donations?",
