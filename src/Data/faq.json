@@ -1,0 +1,44 @@
+{
+  "Entries": [
+    {
+      "Question": "What is Chronofoil?",
+      "Answer": "Chronofoil is a plugin that allows users to record \"captures\" of game packets, and either keep them for analysis later, or upload them to a central location."
+    },
+    {
+      "Question": "What data does Chronofoil collect?",
+      "Answer": "A lot! Since this is an online game, the only way for the game to know what you're doing is via internet communication, which uses packets. Everything you see in-game, other players, their movements, their actions, is sent to you by the server, which in turn received a packet from that player in order to send it to you. This means that your captures contain everything you've done during that session - the roulettes you did, the wipes in raid, that 1% HQ you got, everything."
+    },
+    {
+      "Question": "Is there any data that Chronofoil doesn't collect?",
+      "Answer": "Yes! Chronofoil does not collect, nor does it want, your game Session ID (this is how the server validates your log-in), any chat packets that you send or receive, or the contents of any letters."
+    },
+    {
+      "Question": "I thought Chronofoil collected everything?",
+      "Answer": "Chronofoil will collect all game traffic during normal play, including the data outlined above. This is so individuals who want to keep this information can keep it for their own purposes. Before uploading, Chronofoil generates a censored capture file, which is the same as the original, but with the contents of sensitive packets removed."
+    },
+    {
+      "Question": "How does this censoring work?",
+      "Answer": "Chronofoil has systems in place that will store information that can be used later to censor packets. If you send a letter, Chronofoil will be able to determine the internal \"identifier\" (developers call them \"opcodes\") that the client (the game) and server use to determine what that packet means. This way, if you decide to upload that capture, Chronofoil knows exactly which packet \"type\" contained the letter you sent - and removes that information accordingly. Chronofoil also has a system that automatically provides these discovered opcodes to the server, so they can be distributed to others. Every Chronofoil user should be able to censor their own captures with only the information Chronofoil has, but if something goes very wrong, users can get those opcodes from the server. There is a notice before upload if Chronofoil doesn't yet know every censorable opcode for the current game version."
+    },
+    {
+      "Question": "How do I know which captures to upload? What if I don't remember what I did during it?",
+      "Answer": "If you don't know what you did during a capture and that makes you hesitant to upload it - don't. Period. If you are uncomfortable with the idea of possibly uploading a specific action you've performed, this plugin may not be for you. Privacy is extremely important to Chronofoil, and if its users don't feel comfortable uploading, they should not be pressured to. That being said, down the pipeline, a feature is planned that will recap and describe what you did during a capture."
+    },
+    {
+      "Question": "Is Chronofoil open source?",
+      "Answer": "Yes, and you can even run your own Chronofoil server to store your captures if you'd like. Check the globe icon under Chronofoil in the plugin installer for more information."
+    },
+    {
+      "Question": "What is this data even used for? How is it useful?",
+      "Answer": "Packet captures from each game version provide a glimpse of how the server acted at that time. Chronofoil is not affiliated with, nor directly intends captures to be used for any purpose outside of metrics and structure research. That being said, metrics would allow individuals to generate drop tables for every monster, given enough information. One could determine what the most commonly sold items are - on the market board and to vendors. What is the most common item in people's inventory? What's the weather and time distribution for every player who caught a specific fish? These are all questions that could be answered with the Chronofoil metrics system. On the other hand, capture downloads allow individuals to parse each packet to determine its structure - is there any useful data in this packet? Can a plugin be made that utilizes some of this data effectively? And finally, the obvious answer is simply preservation. Singleplayer games can be preserved by storing their versions - for example, Minecraft has almost every playable version of itself archived and preserved. However, most \"gacha\" style games that have gone offline are unplayable, as their official servers have gone down, and the communications between the client and server are too difficult or time consuming to reverse engineer from scratch."
+    },
+    {
+      "Question": "What is the \"Chronofoil Metrics System\"?",
+      "Answer": "Definitely not a unit of measurement. There are ways that developers analyze large amounts of data to determine patterns, get insight, find specific cases, and more. There are existing tools for the game that collect data, but Chronofoil aims to be much more than a collector of specific data. The goal is to provide an interface for developers to utilize Chronofoil captures that have met their \"metrics time\" (the time at which the uploader has provided consent for their capture to be used for this purpose) and query them for insights, many possible questions are described above. This system is not in development yet, but it will be soon."
+    },
+    {
+      "Question": "Do you take donations?",
+      "Answer": "Only in the form of Chronofoil captures."
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chronofoil.Common", "deps\Chronofoil.Common\src\Chronofoil.Common.csproj", "{5A4CFEBE-D2C8-47ED-863C-1A5480480A9A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chronofoil.CaptureFile", "deps\Chronofoil.CaptureFile\src\Chronofoil.CaptureFile.csproj", "{EF5D90C9-E44C-47F1-9B0C-FF76FA7D8D4F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chronofoil.Web", "src\Chronofoil.Web.csproj", "{80ED9D8C-0911-4490-8709-E5B456A723A0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5A4CFEBE-D2C8-47ED-863C-1A5480480A9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A4CFEBE-D2C8-47ED-863C-1A5480480A9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A4CFEBE-D2C8-47ED-863C-1A5480480A9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A4CFEBE-D2C8-47ED-863C-1A5480480A9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF5D90C9-E44C-47F1-9B0C-FF76FA7D8D4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF5D90C9-E44C-47F1-9B0C-FF76FA7D8D4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF5D90C9-E44C-47F1-9B0C-FF76FA7D8D4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF5D90C9-E44C-47F1-9B0C-FF76FA7D8D4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80ED9D8C-0911-4490-8709-E5B456A723A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80ED9D8C-0911-4490-8709-E5B456A723A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80ED9D8C-0911-4490-8709-E5B456A723A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80ED9D8C-0911-4490-8709-E5B456A723A0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
