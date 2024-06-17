@@ -1,0 +1,126 @@
+﻿Chronofoil Terms of Service
+
+These Terms of Service ("ToS") govern your use of Chronofoil Services. By using Chronofoil Services, you agree to be bound by these terms.
+
+1. Definitions
+
+    Chronofoil Software: The software and source code provided by the Chronofoil Project, explicitly excluding, and distinct from, Chronofoil Services.
+    Chronofoil Services: The services, data storage, hosting, and other endpoints provided for use by the Chronofoil Project.
+                         Note that only Chronofoil Services are bound by these terms. An individual may utilize Chronofoil Services' source code
+                         to provide their own similar services, which are not bound by these Terms. 
+    User: An individual who uses Chronofoil Software and/or Chronofoil Services.
+    Capture: A recording of a user's activity within Final Fantasy XIV.
+    Metrics: The act of using the provided Chronofoil data analysis interface to perform metrics.
+    Download: The act of utilizing Chronofoil to download a Capture uploaded by any User, for any purpose.
+    Privileged Access: Access to Captures for the purposes of Metrics or Download prior to their stated Metrics or Download date,
+                       restricted to the express purpose of maintaining or improving the Chronofoil Software or Chronofoil Services.
+    Proprietor: An individual with ultimate access to the Chronofoil Software source code, Chronofoil Services source code,
+                Chronofoil Services infrastructure, with ultimate power about decisions regarding these elements, including Terms of Service.
+    Maintainer: An individual who maintains and develops Chronofoil, and has Privileged Access to Captures. The Proprietor is also a Maintainer.
+    Censor: The application of an algorithm or other modification to a Capture that removes certain information (a) Maintainer(s) deem
+            too sensitive, or unnecessary, to provide to Chronofoil Services.
+    Session ID: A piece of data that authorizes the user to log in to the Final Fantasy XIV online servers using the game client.
+    Final Fantasy XIV End of Service: A point in time wherein the Final Fantasy XIV online game is no longer officially available for play.
+
+2. Use of Chronofoil Software
+
+    Permitted Use: Chronofoil Software is intended for any use, excluding those outlined directly in Prohibited Use.
+                   Other commercial uses of Captures created by a User may be pursued by the same User.
+                   Captures may be provided by one User, free-of-charge, to another User, who may utilize said Capture for commercial purposes.
+    Prohibited Use: You may not use Chronofoil Software for the commercial purpose of selling Captures.
+
+3. Use of Chronofoil Services
+
+    Permitted Use: Chronofoil Services are intended for non-commercial use only.
+    Prohibited Use: The use of information from Chronofoil Services, via Metrics or Download, for commercial purposes, is strictly prohibited.
+
+4. Capture Uploads
+
+    Ownership: You retain ownership of your Captures. However, by uploading Captures to the Service, you grant Chronofoil a non-exclusive,
+               worldwide, royalty-free license to use, copy, modify, distribute, and display your Captures for the purpose of providing and improving the Service.
+    Revocation: You may revoke this granted license at any time, using Chronofoil Software to interact with Chronofoil Services, to remove any and all Capture information.
+                However, in the situation wherein a Capture has already been made public 
+                If you are unable to access the Chronofoil Software, you may still exercise your right to remove any and all Capture information via communication
+                with Maintainers or the Proprietor of the Chronofoil Service.
+    Times: The Chronofoil Software has a concept of "Metric Time" and "Public Time" for Captures uploaded to Chronofoil Services.
+           These date time combinations determine when Chronofoil Services have permission from the User to provide the Capture for Metrics or for Download.
+           Maintainers are the only individuals with Privileged Access, which allows access to Captures prior to the "Metrics Time" or "Public Time".
+    Final Fantasy XIV End of Service: A User may select the option in the Chronofoil Software to restrict access to Captures uploaded to the Chronofoil Service
+                                      until Final Fantasy XIV reaches "End of Service". End of Service is defined in section 1.
+
+5. Capture Censorship
+
+Capture Censoring is a best-effort endeavor. There may be information that is intended to be censored, but is not. There may be information that is not intended to be censored, but is.
+
+    Censored Data: The Chronofoil Software censors all Chat messages before uploading a Capture in any way to the Chronofoil Services. The Chronofoil Services do not intend to store Captures containing chat messages.
+                   The Chronofoil Software censors all in-game letters (those sent via the mail system) before uploading a Capture in any way to the Chronofoil Services. The Chronofoil Services do not intend to store Captures containing in-game letters.
+                   The Chronofoil Software censors the user's Session ID before uploading a Capture in any way to the Chronofoil Services. The Chronofoil Services do not intend to store Captures containing player Session IDs.
+    Uncensored Data: Assume all other data not explicitly referred to above is not censored.
+    Non-Exhaustive Examples of Uncensored Data: Characters on the logged in Service Account
+                                                Days subscribed and days left on subscription
+                                                Your Characters' Name
+                                                Your Characters' immutable Character IDs
+                                                Your Characters' "Retainer" information and immutable "Retainer" IDs
+                                                Your Characters' Inventory, including Gil and Currencies
+                                                Your Characters' performed actions, received items, travelled locations
+                                                Your Characters' Friends List and online statuses at time of retrieval
+                                                Your Characters' Free Company information and Free Company members
+                                                Your Characters' Main Scenario Quest progression, completed quests, dungeons, raids
+                                                Your Characters' Fishing Log status
+                                                Home layouts that you visit during a Capture, including Homes that are closed to the public
+                                                The contents of a Home guest book
+    
+By accepting these Terms, you agree that any Capture you provide to Chronofoil is provided with the express understanding of the above.
+
+6. Disclaimers
+
+    No Affiliation: Chronofoil is not affiliated with, endorsed by, or sponsored by Square Enix.
+    Accuracy: Accuracy is a best-effort endeavor. Chronofoil does not guarantee the accuracy, completeness, or reliability of any data collected through Captures.
+    Game Changes: Chronofoil may not be compatible with all versions of Final Fantasy XIV. Changes to the game by Square Enix may affect the functionality of Chronofoil.
+                  In particular, a game update may interfere with the Chronofoil Software's ability to perform Censoring of Captures. In any situation where the Chronofoil
+                  Software fails to Censor properly as outlined in section 4, Users will be notified if a Capture they uploaded to the Chronofoil Service was affected
+                  by said failure and provided the option to accept the Chronofoil Service's post-upload censoring or remove the Capture from Chronofoil Services entirely.
+
+7. Limitation of Liability
+
+Chronofoil is not responsible for harassment, stalking, unintentional information disclosure, or otherwise that may arise out of your use of Chronofoil Software or Chronofoil Services.
+
+8. Termination
+
+Chronofoil reserves the right to terminate your access to the Service at any time for any reason. Should this occur, you reserve the right to request your data be deleted.
+Chronofoil Software will maintain the ability to remove Captures provided by any User regardless of said User's continued access to Chronofoil Services.
+Under the situation wherein a User attempts to interfere with the normal operation of Chronofoil Services via abuse of this continued access to Chronofoil Services,
+said User's data will be removed and access to Chronofoil Services entirely revoked.
+
+9. Maintainers
+
+    Chronofoil reserves the right to add or remove Maintainers of the project at will. Maintainers have Privileged Access as defined in section 1.
+    Change in Maintainer: Users will not receive a notification of a change in Maintainers.
+    Change in Proprietor: Users will receive a notification in the Chronofoil Software, via Chronofoil Services, of a change in Proprietor with a
+                          minimum of one month of notice prior to the individual obtaining full Proprietor status.
+                          Users may perform their own judgement as to remove their data during this period, or after, as Captures uploaded prior to
+                          a Change in Proprietor will be subject to the Terms of Service as defined when the Capture was uploaded.
+
+10. Chronofoil End of Service
+
+In the situation wherein the Chronofoil Service shuts down, regardless of reason, all uploaded Captures will be deleted.
+All licenses provided to Chronofoil by Users for the purposes of re-publishing Captures via the Metrics system or via Public download will be revoked
+at the time that the Chronofoil Service is shut down.
+The Chronofoil Metrics system will no longer be accessible and no Captures will be available for download.
+No updates to the Chronofoil Software will be provided from that point onwards.
+
+11. Changes to Terms
+
+Maintainers may update these ToS. The Chronofoil Software will notify Users of changes if it is determined that they currently make use of Chronofoil Services.
+
+12. Governing Law
+
+This Agreement will be governed by and construed in accordance with the substantive laws of the Commonwealth of Massachusetts without regard to conflict of laws and all disputes arising under or relating to this Agreement shall be brought and resolved solely and exclusively in the State Court located in Massachusetts.
+
+12. Severability
+
+In the event that any provision of this Agreement is found to be invalid or unenforceable by a court of law, such invalidity or unenforceability shall not affect any other term or provision of this Agreement, and such other terms or provisions shall continue in full force and effect.
+
+12. Contact Us
+
+If you have any questions about the Chronofoil Terms of Service, please cease use immediately and join the Chronofoil Discord at https://discord.gg/dQahHzHMVN for direct communication.
