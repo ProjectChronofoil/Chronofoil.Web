@@ -8,9 +8,9 @@ using Chronofoil.Web.Services.Censor;
 using Chronofoil.Web.Services.Database;
 using Chronofoil.Web.Services.Info;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 
 namespace Chronofoil.Web;
 
@@ -19,6 +19,8 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        
+        builder.Host.UseSerilog((context, configuration) => configuration.ReadFrom.Configuration(context.Configuration));
         
         builder.Configuration.Sources.Clear();
         builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
@@ -89,7 +91,7 @@ public class Program
             // app.UseHttpLogging();
         }
 
-        app.UseHttpsRedirection();
+        // app.UseHttpsRedirection();
 
         app.UseAuthentication();
         app.UseAuthorization();

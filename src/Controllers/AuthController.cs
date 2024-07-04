@@ -23,7 +23,7 @@ public class AuthController : Controller
     [HttpPost("register/{provider}")]
     public async Task<ActionResult<AccessTokenResponse>> Register(string provider, AuthRequest request)
     {
-        _log.LogDebug("Register");
+        _log.LogInformation("Register");
         
         try
         {
@@ -43,7 +43,7 @@ public class AuthController : Controller
     [HttpPost("login/{provider}")]
     public async Task<ActionResult<AccessTokenResponse>> Login(string provider, AuthRequest request)
     {
-        _log.LogDebug("Login");
+        _log.LogInformation("Login");
         
         try
         {
@@ -63,7 +63,7 @@ public class AuthController : Controller
     [HttpPost("token/refresh")]
     public async Task<ActionResult<AccessTokenResponse>> RefreshToken(RefreshRequest request) 
     {
-        _log.LogDebug("RefreshToken");
+        _log.LogInformation("RefreshToken");
         
         try
         {
@@ -84,7 +84,7 @@ public class AuthController : Controller
     [HttpPost("tos/accept")]
     public async Task<ActionResult> AcceptTos(AcceptTosRequest request) 
     {
-        _log.LogDebug("AcceptTos");
+        _log.LogInformation("AcceptTos");
         
         try
         {
