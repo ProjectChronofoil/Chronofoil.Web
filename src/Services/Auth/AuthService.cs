@@ -229,12 +229,25 @@ public class AuthService : IAuthService
 
     public async Task<OneOf<AccessTokenResponse, StatusCodeResult>> RefreshToken(string refreshToken)
     {
+        _log.LogInformation("Refreshing for {token}", refreshToken[..8]);
         var oldLocalToken = await _db.GetCfToken(refreshToken);
-        if (oldLocalToken == null) return new StatusCodeResult(StatusCodes.Status403Forbidden);
+        if (oldLocalToken == null)
+        {
+            _log.LogError("oldLocalToken was null!");
+            return new StatusCodeResult(StatusCodes.Status403Forbidden);
+        }
         var oldRemoteToken = await _db.GetRemoteToken(oldLocalToken.RemoteTokenId);
-        if (oldRemoteToken == null) return new StatusCodeResult(StatusCodes.Status403Forbidden);
+        if (oldRemoteToken == null)
+        {
+            _log.LogError("oldRemoteToken was null!");
+            return new StatusCodeResult(StatusCodes.Status403Forbidden);
+        }
         var user = await _db.GetUser(oldLocalToken.UserId);
-        if (user == null) return new StatusCodeResult(StatusCodes.Status403Forbidden);
+        if (user == null)
+        {
+            _log.LogError("User was null?");
+            return new StatusCodeResult(StatusCodes.Status403Forbidden);
+        }
 
         var (response, userInfo) = await RefreshUser(oldRemoteToken.Provider, oldRemoteToken.RefreshToken);
         if (response == null || userInfo == null) return new StatusCodeResult(StatusCodes.Status500InternalServerError);

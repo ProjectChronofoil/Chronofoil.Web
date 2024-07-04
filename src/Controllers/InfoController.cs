@@ -22,7 +22,7 @@ public class InfoController : Controller
     [HttpGet("info/tos")]
     public async Task<ActionResult<TosResponse>> GetTos()
     {
-        _log.LogDebug("TOS");
+        _log.LogInformation("TOS");
         
         try
         {
@@ -38,7 +38,7 @@ public class InfoController : Controller
     [HttpGet("info/faq")]
     public async Task<ActionResult<FaqResponse>> GetFaq()
     {
-        _log.LogDebug("FAQ");
+        _log.LogInformation("FAQ");
         
         try
         {
