@@ -7,7 +7,7 @@ namespace Chronofoil.Web.Services.Censor;
 public class CensorService
 {
     // TODO: Modularize. Updating the service every time the game updates is not that bad rn
-    private const string GameVersion = "2024.04.23.0000.0000";
+    private const string GameVersion = "2024.06.18.0000.0000";
 
     private ILogger<CensorService> _log;
     private CfDbService _db;
