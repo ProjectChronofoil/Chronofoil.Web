@@ -7,7 +7,11 @@ namespace Chronofoil.Web.Services.Censor;
 public class CensorService
 {
     // TODO: Modularize. Updating the service every time the game updates is not that bad rn
-    private const string GameVersion = "2024.06.18.0000.0000";
+    private readonly HashSet<string> _gameVersions = [
+        "2024.04.23.0000.0000",
+        "2024.06.18.0000.0000",
+        "2024.07.06.0000.0000"
+    ];
 
     private ILogger<CensorService> _log;
     private CfDbService _db;
@@ -23,10 +27,10 @@ public class CensorService
     
     public async Task<bool> ProcessFoundOpcodes(Guid user, FoundOpcodesRequest opcode)
     {
-        if (opcode.GameVersion != GameVersion)
+        if (!_gameVersions.Contains(opcode.GameVersion))
         {
-            _log.LogError("Received opcodes for wrong game version from {user}", user);
-            _log.LogError("Expected: '{gv1}' Actual: '{gv2}'", GameVersion, opcode.GameVersion);
+            _log.LogError("Received opcodes for invalid game version from {user}", user);
+            _log.LogError("Current: '{gv1}' Actual: '{gv2}'", _gameVersions.Last(), opcode.GameVersion);
             return false;
         }
 
