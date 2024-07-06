@@ -274,7 +274,7 @@ public class AuthService : IAuthService
         return new AccessTokenResponse
         {
             AccessToken = jwtToken,
-            RefreshToken = refreshToken,
+            RefreshToken = newRefreshToken,
             ExpiresIn = (long)_localTokenLifetime.TotalSeconds
         };
     }

@@ -56,7 +56,7 @@ public class Program
                             Encoding.ASCII.GetBytes(builder.Configuration.GetSection("JWT:SecretKey").Value!)),
                     ValidateIssuer = false,
                     ValidateAudience = false,
-                    ValidateLifetime = false
+                    ValidateLifetime = true,
                 };
                 if (builder.Environment.IsDevelopment())
                 {
