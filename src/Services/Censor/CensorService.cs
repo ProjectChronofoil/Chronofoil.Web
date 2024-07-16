@@ -10,7 +10,8 @@ public class CensorService
     private readonly HashSet<string> _gameVersions = [
         "2024.04.23.0000.0000",
         "2024.06.18.0000.0000",
-        "2024.07.06.0000.0000"
+        "2024.07.06.0000.0000",
+        "2024.07.10.0001.0000"
     ];
 
     private ILogger<CensorService> _log;
