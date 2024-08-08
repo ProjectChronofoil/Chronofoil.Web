@@ -229,23 +229,25 @@ public class AuthService : IAuthService
 
     public async Task<OneOf<AccessTokenResponse, StatusCodeResult>> RefreshToken(string refreshToken)
     {
-        _log.LogInformation("Refreshing for {token}", refreshToken[..8]);
+        var tokenSubLen = Math.Min(refreshToken.Length, 8);
+        var tokenSub = refreshToken[..tokenSubLen];
+        _log.LogInformation("Refreshing for {token}", tokenSub);
         var oldLocalToken = await _db.GetCfToken(refreshToken);
         if (oldLocalToken == null)
         {
-            _log.LogError("oldLocalToken was null!");
+            _log.LogError("oldLocalToken for {tokenSub} was null!", tokenSub);
             return new StatusCodeResult(StatusCodes.Status403Forbidden);
         }
         var oldRemoteToken = await _db.GetRemoteToken(oldLocalToken.RemoteTokenId);
         if (oldRemoteToken == null)
         {
-            _log.LogError("oldRemoteToken was null!");
+            _log.LogError("oldRemoteToken for {tokenSub} was null!", tokenSub);
             return new StatusCodeResult(StatusCodes.Status403Forbidden);
         }
         var user = await _db.GetUser(oldLocalToken.UserId);
         if (user == null)
         {
-            _log.LogError("User was null?");
+            _log.LogError("User was null for {tokenSub}?", tokenSub);
             return new StatusCodeResult(StatusCodes.Status403Forbidden);
         }
 
