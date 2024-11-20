@@ -14,11 +14,12 @@ public class CensorService
         "2024.07.10.0001.0000",
         "2024.07.24.0000.0000",
         "2024.08.02.0000.0000",
-        "2024.08.21.0000.0000"
+        "2024.08.21.0000.0000",
+        "2024.11.06.0000.0000",
     ];
 
-    private ILogger<CensorService> _log;
-    private CfDbService _db;
+    private readonly ILogger<CensorService> _log;
+    private readonly CfDbService _db;
 
     private readonly string[] _validOpcodeKeys = Enum.GetValues<KnownCensoredOpcode>().Select(e => e.ToString()).ToArray();
     private int ValidOpcodeCount => _validOpcodeKeys.Length;
