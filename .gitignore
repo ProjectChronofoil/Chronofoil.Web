@@ -397,8 +397,3 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 .idea/
-
-deploy/
-*.sh
-*.env
-appsettings.Development.json
