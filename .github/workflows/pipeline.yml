@@ -76,8 +76,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ghcr.io/chronofoil/chronofoilweb:${{ needs.identify.outputs.image_tag }}
-            ghcr.io/chronofoil/chronofoilweb:${{ github.sha }}
+            ghcr.io/projectchronofoil/chronofoilweb:${{ needs.identify.outputs.image_tag }}
+            ghcr.io/projectchronofoil/chronofoilweb:${{ github.sha }}
 
   deploy:
     runs-on: ubuntu-latest
