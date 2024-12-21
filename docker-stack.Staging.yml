@@ -11,7 +11,7 @@ services:
     command: "caddy reverse-proxy --from cf-stg.perchbird.dev --to http://web:80"
   
   web:
-    image: ghcr.io/chronofoil/chronofoilweb:staging
+    image: ghcr.io/projectchronofoil/chronofoilweb:staging
     volumes:
       - web_data:/web_data/
     env_file:
