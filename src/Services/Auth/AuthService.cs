@@ -39,7 +39,7 @@ public class AuthService : IAuthService
         _services = services;
         _config = config;
         
-        _localTokenLifetime = TimeSpan.FromHours(Convert.ToDouble(_config["JWT:TokenLifetimeHours"]));
+        _localTokenLifetime = TimeSpan.FromHours(Convert.ToDouble(_config["JWT_TokenLifetimeHours"]));
     }
 
     private async 
@@ -134,8 +134,8 @@ public class AuthService : IAuthService
 
     private string GenerateJwtToken(Guid cfUserId, string userName, string provider, TimeSpan tokenDuration)
     {
-        var secretKey = _config["JWT:SecretKey"]!;
-        var issuer = _config["JWT:Issuer"]!;
+        var secretKey = _config["JWT_SecretKey"]!;
+        var issuer = _config["JWT_Issuer"]!;
         
         var key = Encoding.ASCII.GetBytes(secretKey);
         var tokenDescriptor = new SecurityTokenDescriptor
