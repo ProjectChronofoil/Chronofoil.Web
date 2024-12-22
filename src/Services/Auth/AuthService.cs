@@ -137,7 +137,7 @@ public class AuthService : IAuthService
         var secretKey = _config["JWT_SecretKey"]!;
         var issuer = _config["JWT_Issuer"]!;
         
-        var key = Encoding.ASCII.GetBytes(secretKey);
+        var key = Encoding.Unicode.GetBytes(secretKey);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[] 
