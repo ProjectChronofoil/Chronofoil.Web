@@ -1,0 +1,32 @@
+services:
+  caddy:
+    image: caddy:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    command: "caddy reverse-proxy --from cf-stg.perchbird.dev --to http://web:80"
+  
+  web:
+    image: ghcr.io/projectchronofoil/chronofoilweb:staging
+    volumes:
+      - web_data:/web_data/
+    env_file:
+      - Staging.env
+    depends_on:
+      - db
+
+  db:
+    image: postgres:17.2-alpine3.21
+    volumes:
+      - pg_data:/var/lib/postgresql/data/
+    env_file:
+      - Staging.env
+
+volumes:
+  web_data:
+  pg_data:
+  caddy_data:
+  caddy_config:

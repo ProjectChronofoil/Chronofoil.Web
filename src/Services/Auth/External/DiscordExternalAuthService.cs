@@ -34,8 +34,8 @@ public class DiscordExternalAuthService : IExternalAuthService
 
     public DiscordExternalAuthService(IConfiguration config, ILogger<DiscordExternalAuthService> log)
     {
-        _clientId = config["Discord:ClientId"]!;
-        _clientSecret = config["Discord:ClientSecret"]!;
+        _clientId = config["Discord_ClientId"]!;
+        _clientSecret = config["Discord_ClientSecret"]!;
         _log = log;
     }
 
