@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Chronofoil.Web.Persistence;
 using Chronofoil.Web.Services.Auth;
 using Chronofoil.Web.Services.Auth.External;
@@ -40,6 +41,9 @@ public class Program
             .AddJwtBearer(options =>
             {
                 var isDev = builder.Environment.IsDevelopment();
+
+                var secretKey = builder.Configuration.GetSection("JWT_SecretKey").Value!;
+                secretKey = Regex.Unescape(secretKey);
                 
                 options.Authority = isDev ? "http://localhost:8080" : "https://cf.perchbird.dev";
                 options.Audience = builder.Configuration["JWT_Audience"];
@@ -49,7 +53,7 @@ public class Program
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey =
                         new SymmetricSecurityKey(
-                            Encoding.Unicode.GetBytes(builder.Configuration.GetSection("JWT_SecretKey").Value!)),
+                            Encoding.ASCII.GetBytes(secretKey)),
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     ValidateLifetime = true,
