@@ -3,6 +3,7 @@ using System.Security.Authentication;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using Chronofoil.Common.Auth;
 using Chronofoil.Web.Persistence;
 using Chronofoil.Web.Services.Auth.External;
@@ -135,9 +136,10 @@ public class AuthService : IAuthService
     private string GenerateJwtToken(Guid cfUserId, string userName, string provider, TimeSpan tokenDuration)
     {
         var secretKey = _config["JWT_SecretKey"]!;
+        secretKey = Regex.Unescape(secretKey);
         var issuer = _config["JWT_Issuer"]!;
         
-        var key = Encoding.Unicode.GetBytes(secretKey);
+        var key = Encoding.ASCII.GetBytes(secretKey);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[] 
