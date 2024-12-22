@@ -49,7 +49,7 @@ public class Program
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey =
                         new SymmetricSecurityKey(
-                            Encoding.ASCII.GetBytes(builder.Configuration.GetSection("JWT_SecretKey").Value!)),
+                            Encoding.Unicode.GetBytes(builder.Configuration.GetSection("JWT_SecretKey").Value!)),
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     ValidateLifetime = true,
