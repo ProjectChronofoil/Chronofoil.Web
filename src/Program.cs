@@ -21,12 +21,8 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         
         builder.Host.UseSerilog((context, configuration) => configuration.ReadFrom.Configuration(context.Configuration));
+        Serilog.Debugging.SelfLog.Enable(TextWriter.Synchronized(Console.Out));
         
-        builder.Configuration.Sources.Clear();
-        builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-        builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
-        builder.Configuration.AddEnvironmentVariables();
-
         builder.Services.AddControllers()
             .AddJsonOptions(options =>
             {
@@ -46,14 +42,14 @@ public class Program
                 var isDev = builder.Environment.IsDevelopment();
                 
                 options.Authority = isDev ? "http://localhost:8080" : "https://cf.perchbird.dev";
-                options.Audience = builder.Configuration["JWT:Audience"];
-                options.ClaimsIssuer = builder.Configuration["JWT:Issuer"];
+                options.Audience = builder.Configuration["JWT_Audience"];
+                options.ClaimsIssuer = builder.Configuration["JWT_Issuer"];
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey =
                         new SymmetricSecurityKey(
-                            Encoding.ASCII.GetBytes(builder.Configuration.GetSection("JWT:SecretKey").Value!)),
+                            Encoding.ASCII.GetBytes(builder.Configuration.GetSection("JWT_SecretKey").Value!)),
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     ValidateLifetime = true,
@@ -71,15 +67,6 @@ public class Program
         builder.Services.AddScoped<CensorService, CensorService>();
         builder.Services.AddScoped<CaptureService, CaptureService>();
         builder.Services.AddScoped<InfoService, InfoService>();
-        // builder.Services.AddHttpLogging(o => o.LoggingFields = HttpLoggingFields.All);
-        // builder.Services.AddLogging(logging =>
-        // {
-        //     logging.AddSimpleConsole(options =>
-        //     {
-        //         options.SingleLine = true;
-        //         options.TimestampFormat = "yyyy-MM-dd HH:mm:ss.fff ";
-        //     });
-        // });
 
         var app = builder.Build();
         
@@ -88,16 +75,10 @@ public class Program
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
             app.UseSwaggerUI();
-            // app.UseHttpLogging();
         }
-
-        // app.UseHttpsRedirection();
 
         app.UseAuthentication();
         app.UseAuthorization();
-
-        // app.MapGet("/hello-world", [Authorize]() => $"Hello {User}!");
-        
         app.MapControllers();
 
         Migrate(app);
