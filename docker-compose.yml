@@ -4,27 +4,29 @@
       context: .
       dockerfile: ./src/Development.Dockerfile
     volumes:
-      - ./deploy/persistence/web/:/web_data/
-      - .:/app/
-      - ~/.nuget/packages:/root/.nuget/packages
-      # Don't mount these directories
-      # These prevent the obj files from referencing the container's nuget dir
+      - ./:/app/
+      - ./web_data/:/web_data/
       - /app/src/obj/
       - /app/src/bin/
       - /app/deps/Chronofoil.Common/src/obj/
       - /app/deps/Chronofoil.Common/src/bin/
       - /app/deps/Chronofoil.CaptureFile/src/obj/
       - /app/deps/Chronofoil.CaptureFile/src/bin/
-      # This prevents the container's dotnet from using launchSettings.json
-      - /app/src/Properties/
     ports:
-      - "5000:5000"
-    env_file: "dev.env"
-    command: ["dotnet", "watch", "--project", "/app/src/Chronofoil.Web.csproj"]
+      - "5103:5103"
+    env_file: "Development.env"
+    working_dir: /app
+    command: dotnet watch run --project src/Chronofoil.Web.csproj
+    depends_on:
+      - db
+
   db:
-    image: 'postgres:latest'
+    image: 'postgres:17.2-alpine3.21'
     ports:
       - "5432:5432"
     volumes:
-      - ./deploy/persistence/db/:/var/lib/postgresql/data
-    env_file: "dev.env"
+      - pg_data:/var/lib/postgresql/data/
+    env_file: "Development.env"
+    
+volumes:
+  pg_data:
