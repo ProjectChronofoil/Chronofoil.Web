@@ -11,6 +11,7 @@ using Chronofoil.Web.Services.Info;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Prometheus;
 using Serilog;
 
 namespace Chronofoil.Web;
@@ -72,6 +73,12 @@ public class Program
         builder.Services.AddScoped<CaptureService, CaptureService>();
         builder.Services.AddScoped<InfoService, InfoService>();
 
+        builder.Services.AddMetricServer(options =>
+        {
+            options.Url = "/metrics";
+            options.Port = 9184;
+        });
+        
         var app = builder.Build();
         
         if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))

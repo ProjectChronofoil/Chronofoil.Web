@@ -11,6 +11,8 @@ services:
   
   web:
     image: ghcr.io/projectchronofoil/chronofoilweb:staging
+    ports:
+      - "9184:9184"
     volumes:
       - web_data:/web_data/
     env_file:
@@ -22,6 +24,25 @@ services:
     image: postgres:17.2-alpine3.21
     volumes:
       - pg_data:/var/lib/postgresql/data/
+    env_file:
+      - Staging.env
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    command:
+      - '--path.rootfs=/host'
+    ports:
+      - "9100:9100"
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
+  
+  pg_exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter
+    ports:
+      - "9187:9187"
+    depends_on:
+      - db
     env_file:
       - Staging.env
 
