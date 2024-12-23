@@ -7,11 +7,13 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
-    command: "caddy reverse-proxy --from cf-stg.perchbird.dev --to http://web:80"
+    command: "caddy reverse-proxy --from http://cf-stg.perchbird.dev --to http://web:80"
   
   web:
     image: ghcr.io/projectchronofoil/chronofoilweb:staging
     ports:
+      - "80:80"
+      - "443:443"
       - "9184:9184"
     volumes:
       - web_data:/web_data/
