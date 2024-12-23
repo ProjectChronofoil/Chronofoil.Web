@@ -41,6 +41,7 @@ services:
   
   pg_exporter:
     image: quay.io/prometheuscommunity/postgres-exporter
+    command: '--no-collector.stat_bgwriter'
     ports:
       - "9187:9187"
     depends_on:
