@@ -19,6 +19,7 @@ public class CensorService
         "2024.11.20.0000.0000",
         "2024.12.07.0000.0000",
         "2025.01.14.0000.0000",
+        "2025.01.28.0000.0000",
     ];
 
     private readonly ILogger<CensorService> _log;
