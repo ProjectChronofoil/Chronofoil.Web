@@ -123,7 +123,7 @@ jobs:
           echo "POSTGRES_PASSWORD=${{ secrets.DB_PASS }}" >> $environment.env
           echo "CF_CONNSTRING=Host=db:5432;Database=chronofoil;Username=cf;Password=${{ secrets.DB_PASS }}" >> $environment.env
           echo "DATA_SOURCE_NAME=postgresql://cf:${{ secrets.DB_PASS }}@db:5432/chronofoil?sslmode=disable" >> $environment.env
-          echo "Serilog__WriteTo__1__Args__apiKey=${{ secrets.SEQ_API_KEY }}" >> $environment.env
+          echo "FORWARDER_OUTPUT_APIKEY=${{ secrets.SEQ_API_KEY }}" >> $environment.env
           echo 'JWT_SecretKey=${{ secrets.JWT_SECRET }}' >> $environment.env
           echo "Discord_ClientId=${{ vars.DISCORD_CLIENT_ID }}" >> $environment.env
           echo "Discord_ClientSecret=${{ secrets.DISCORD_CLIENT_SECRET }}" >> $environment.env
