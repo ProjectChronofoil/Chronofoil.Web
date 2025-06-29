@@ -1,9 +1,10 @@
 using Chronofoil.CaptureFile;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Chronofoil.Web.Persistence;
 
-public sealed class ChronofoilDbContext : DbContext
+public class ChronofoilDbContext : DbContext
 {
     public DbSet<User> Users { get; private set; }
     public DbSet<CfTokenInfo> CfTokens { get; private set; }
@@ -12,6 +13,8 @@ public sealed class ChronofoilDbContext : DbContext
     public DbSet<CensoredOpcode> Opcodes { get; private set; }
 
     private readonly IConfiguration _config;
+
+    public ChronofoilDbContext() { }
     
     public ChronofoilDbContext(DbContextOptions<ChronofoilDbContext> options, IConfiguration config)
         : base(options)
@@ -20,7 +23,12 @@ public sealed class ChronofoilDbContext : DbContext
     }
     
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql(_config["CF_CONNSTRING"]);
+    {
+        optionsBuilder.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+        
+        if (!optionsBuilder.IsConfigured)
+            optionsBuilder.UseNpgsql(_config["CF_CONNSTRING"]);
+    }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -48,7 +56,6 @@ public sealed class ChronofoilDbContext : DbContext
 
     public void PostMigrate()
     {
-        
         // SaveChanges();
     }
 }
