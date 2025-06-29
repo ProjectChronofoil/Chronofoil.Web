@@ -73,6 +73,15 @@ public class Program
         builder.Services.AddScoped<ICaptureService, CaptureService>();
         builder.Services.AddScoped<IInfoService, InfoService>();
         
+        if (builder.Environment.IsEnvironment("Staging") || builder.Environment.IsEnvironment("Production"))
+        {
+            builder.Services.AddMetricServer(options =>
+            {
+                options.Url = "/metrics";
+                options.Port = 9184;
+            });   
+        }
+        
         var app = builder.Build();
         
         if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
@@ -80,14 +89,6 @@ public class Program
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
             app.UseSwaggerUI();
-        }
-        else
-        {
-            builder.Services.AddMetricServer(options =>
-            {
-                options.Url = "/metrics";
-                options.Port = 9184;
-            });
         }
 
         app.UseAuthentication();
