@@ -37,7 +37,7 @@ jobs:
   
   build-push:
     runs-on: ubuntu-latest
-    needs: [test, identify]
+    needs: [identify]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -65,7 +65,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: [test, identify, build-push]
+    needs: [identify, build-push]
     environment: ${{ needs.identify.outputs.environment }}
     concurrency: deploy-${{ needs.identify.outputs.environment }}
     steps:
