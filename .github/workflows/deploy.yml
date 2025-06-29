@@ -52,7 +52,7 @@ jobs:
   build-push:
     runs-on: ubuntu-latest
     needs: [identify]
-    if: ${{ steps.identify_env.outputs.environment != 'None' }}
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
