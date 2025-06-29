@@ -1,53 +1,55 @@
-﻿using Chronofoil.Common.Auth;
+﻿using Chronofoil.Common;
+using Chronofoil.Common.Auth;
 using Chronofoil.Common.Info;
 using Chronofoil.Web.Services.Auth;
 using Chronofoil.Web.Services.Info;
+using Chronofoil.Web.Utils;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chronofoil.Web.Controllers;
 
 [ApiController]
-[Route("api")]
+[Route(Routes.InfoV1)]
 public class InfoController : Controller
 {
     private readonly ILogger _log;
-    private readonly InfoService _infoService;
+    private readonly IInfoService _infoService;
     
-    public InfoController(ILogger<AuthController> log, InfoService infoService)
+    public InfoController(ILogger<AuthController> log, IInfoService infoService)
     {
         _log = log;
         _infoService = infoService;
     }
 
-    [HttpGet("info/tos")]
-    public async Task<ActionResult<TosResponse>> GetTos()
+    [HttpGet("tos")]
+    public async Task<ActionResult<ApiResult<TosResponse>>> GetTos()
     {
         _log.LogInformation("TOS");
         
         try
         {
-            return _infoService.GetCurrentTos();
+            return _infoService.GetCurrentTos().ToActionResult();
         }
-        catch (Exception ex) 
+        catch (Exception ex)
         {
             _log.LogError(ex, "Failed to get TOS.");
-            return StatusCode(StatusCodes.Status500InternalServerError);
+            return ApiResult<TosResponse>.Failure().ToActionResult();
         }
     }
     
-    [HttpGet("info/faq")]
-    public async Task<ActionResult<FaqResponse>> GetFaq()
+    [HttpGet("faq")]
+    public async Task<ActionResult<ApiResult<FaqResponse>>> GetFaq()
     {
         _log.LogInformation("FAQ");
         
         try
         {
-            return _infoService.GetCurrentFaq();
+            return _infoService.GetCurrentFaq().ToActionResult();
         }
-        catch (Exception ex) 
+        catch (Exception ex)
         {
             _log.LogError(ex, "Failed to get FAQ.");
-            return StatusCode(StatusCodes.Status500InternalServerError);
+            return ApiResult<FaqResponse>.Failure().ToActionResult();
         }
     }
     

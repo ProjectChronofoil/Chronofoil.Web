@@ -1,10 +1,11 @@
 ﻿using Chronofoil.CaptureFile.Censor;
+using Chronofoil.Common;
 using Chronofoil.Common.Censor;
 using Chronofoil.Web.Services.Database;
 
 namespace Chronofoil.Web.Services.Censor;
 
-public class CensorService
+public class CensorService : ICensorService
 {
     // TODO: Modularize. Updating the service every time the game updates is not that bad rn
     private readonly HashSet<string> _gameVersions = [
@@ -31,30 +32,30 @@ public class CensorService
     ];
 
     private readonly ILogger<CensorService> _log;
-    private readonly CfDbService _db;
+    private readonly IDbService _db;
 
     private readonly string[] _validOpcodeKeys = Enum.GetValues<KnownCensoredOpcode>().Select(e => e.ToString()).ToArray();
     private int ValidOpcodeCount => _validOpcodeKeys.Length;
 
-    public CensorService(ILogger<CensorService> log, CfDbService db)
+    public CensorService(ILogger<CensorService> log, IDbService db)
     {
         _log = log;
         _db = db;
     }
     
-    public async Task<bool> ProcessFoundOpcodes(Guid user, FoundOpcodesRequest opcode)
+    public async Task<ApiResult> ProcessFoundOpcodes(Guid user, FoundOpcodesRequest opcode)
     {
         if (!_gameVersions.Contains(opcode.GameVersion))
         {
             _log.LogError("Received opcodes for invalid game version from {user}", user);
             _log.LogError("Current: '{gv1}' Actual: '{gv2}'", _gameVersions.Last(), opcode.GameVersion);
-            return false;
+            return ApiResult.Failure(ApiStatusCode.OpcodeUnknownGameVersion);
         }
 
         if (opcode.Opcodes.Count > ValidOpcodeCount)
         {
             _log.LogError("Received too many opcodes to be a valid request from {user}", user);
-            return false;
+            return ApiResult.Failure(ApiStatusCode.OpcodeCountInvalid);
         }
 
         var validOpcodes = opcode.Opcodes.Where(x => _validOpcodeKeys.Contains(x.Key)).ToList();
@@ -64,7 +65,7 @@ public class CensorService
         foreach (var pair in invalidOpcodes.Take(ValidOpcodeCount))
         {
             _log.LogError("Received opcodes with invalid key '{key}' from {user}", pair.Key, user);
-            return false;
+            return ApiResult.Failure(ApiStatusCode.OpcodeInvalidKey);
         }
 
         foreach (var pair in validOpcodes)
@@ -81,7 +82,7 @@ public class CensorService
                         pair.Key,
                         pair.Value,
                         user);
-                    return false;   
+                    return ApiResult.Failure(ApiStatusCode.OpcodeMismatchWithKnown);
                 }
                 continue;
             }
@@ -90,10 +91,10 @@ public class CensorService
         }
         await _db.Save();
         
-        return true;
+        return ApiResult.Success();
     }
     
-    public async Task<CensoredOpcodesResponse> GetCurrentOpcodes(string gameVersion)
+    public async Task<ApiResult<CensoredOpcodesResponse>> GetCurrentOpcodes(string gameVersion)
     {
         var result = await _db.GetOpcodes(gameVersion, _validOpcodeKeys);
         var ret = new CensoredOpcodesResponse
@@ -107,6 +108,6 @@ public class CensorService
             ret.Opcodes[op.Key] = op.Opcode;
         }
 
-        return ret;
+        return ApiResult<CensoredOpcodesResponse>.Success(ret);
     }
 }

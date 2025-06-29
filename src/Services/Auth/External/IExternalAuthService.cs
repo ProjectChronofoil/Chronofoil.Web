@@ -9,9 +9,9 @@ public interface IExternalAuthService
         string Username,
         string UserId);
     
-    public Task<AccessTokenResponse> ExchangeCodeForTokenAsync(string code);
+    public Task<AccessTokenResponse?> ExchangeCodeForTokenAsync(string code);
 
-    public Task<AccessTokenResponse> ExchangeRefreshCodeForTokenAsync(string code);
+    public Task<AccessTokenResponse?> ExchangeRefreshCodeForTokenAsync(string code);
 
-    public Task<UserInfo> GetUserInfoAsync(string accessToken);
+    public Task<UserInfo?> GetUserInfoAsync(string accessToken);
 }

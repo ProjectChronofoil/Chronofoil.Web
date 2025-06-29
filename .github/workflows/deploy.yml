@@ -1,31 +1,17 @@
-name: pipeline
+name: deploy
 on:
-  push:
-    branches:
-      - "main"
-      - "staging"
+  workflow_run:
+    workflows: ["Test"]
+    branches: ["main", "staging"]
+    types:
+      - completed
 
 permissions:
   packages: write
 
 jobs:
-  compile:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Setup dotnet
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.x.x'
-      - name: Restore
-        run: dotnet restore
-      - name: Compile
-        run: dotnet build --no-restore --configuration Release
-
   identify:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -51,9 +37,7 @@ jobs:
   
   build-push:
     runs-on: ubuntu-latest
-    needs:
-      - compile
-      - identify
+    needs: [test, identify]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -81,10 +65,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs:
-      - compile
-      - identify
-      - build-push
+    needs: [test, identify, build-push]
     environment: ${{ needs.identify.outputs.environment }}
     concurrency: deploy-${{ needs.identify.outputs.environment }}
     steps:
