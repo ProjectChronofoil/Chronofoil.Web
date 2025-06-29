@@ -1,3 +1,4 @@
+using Chronofoil.Common;
 using Chronofoil.Common.Capture;
 using Chronofoil.Web.Services.Capture;
 using Chronofoil.Web.Utils;
@@ -8,106 +9,84 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 namespace Chronofoil.Web.Controllers;
 
 [ApiController]
-[Route("api/capture")]
+[Route(Routes.CaptureV1)]
 public class CaptureController : Controller
 {
     private readonly ILogger<CaptureController> _log;
-    private readonly CaptureService _captureService;
+    private readonly ICaptureService _captureService;
 
-    public CaptureController(ILogger<CaptureController> log, CaptureService captureService)
+    public CaptureController(ILogger<CaptureController> log, ICaptureService captureService)
     {
         _log = log;
         _captureService = captureService;
     }
     
-    // [Authorize]
-    // [HttpPost("ticket")]
-    // public async Task<IActionResult> RequestUploadTicket([FromBody] UploadTicketRequest request)
-    // {
-    //     try
-    //     {
-    //         var userId = User.GetCfUserId();
-    //         if (userId == null) return Forbid();
-    //         var result = await _uploadService.GetUploadTicket(userId.Value, request);
-    //         return result.Match<IActionResult>(
-    //             ticket => Ok(new { Ticket = ticket }),
-    //             statusCode => statusCode
-    //         );
-    //     }
-    //     catch (Exception ex) 
-    //     {
-    //         _log.LogError(ex, "Failed to register.");
-    //         return StatusCode(StatusCodes.Status500InternalServerError);
-    //     }
-    // }
-
     [Authorize]
     [HttpPost("upload")]
     [RequestSizeLimit(209_715_200)]
-    public async Task<ActionResult<CaptureUploadResponse>> UploadFile(List<IFormFile?>? files)
+    public async Task<ActionResult<ApiResult<CaptureUploadResponse>>> UploadFile(List<IFormFile?>? files)
     {
         try
         {
-            if (files == null || files.Any(file => file == null || file.Length == 0)) return BadRequest("Empty files are not allowed.");
+            if (files == null || files.Any(file => file == null || file.Length == 0))
+                return ApiResult<CaptureUploadResponse>.Failure(ApiStatusCode.FormFileIsEmptyFile).ToActionResult();
 
             var meta = files.FirstOrDefault(file => file!.FileName == "meta.json");
             var capture = files.FirstOrDefault(file => file!.FileName.EndsWith(".ccfcap"));
 
-            if (meta == null || capture == null) return BadRequest("Files must conform to Chronofoil API spec.");
+            if (meta == null || capture == null)
+                return ApiResult<CaptureUploadResponse>.Failure(ApiStatusCode.FormFileNotValid).ToActionResult();
 
             string metaStr;
             await using (var stream = meta.OpenReadStream())
             using (var reader = new StreamReader(stream)) 
                 metaStr = await reader.ReadToEndAsync();
             var request = JsonSerializer.Deserialize<CaptureUploadRequest>(metaStr);
-            if (request == null) return BadRequest("Failed to understand metadata.");
+            if (request == null)
+                return ApiResult<CaptureUploadResponse>.Failure(ApiStatusCode.FormFileMetadataNotValid).ToActionResult();
 
             var userId = User.GetCfUserId();
             var result = await _captureService.Upload(userId, request, capture);
-            
-            return result.Match<ActionResult<CaptureUploadResponse>>(
-                response => Accepted(response),
-                statusCode => statusCode
-            );
+            return result.ToActionResult();
         }
         catch (Exception ex) 
         {
             _log.LogError(ex, "Failed to process upload.");
-            return StatusCode(StatusCodes.Status500InternalServerError);
+            return ApiResult<CaptureUploadResponse>.Failure().ToActionResult();
         }
     }
     
     [Authorize]
     [HttpPost("delete")]
-    public async Task<IActionResult> DeleteCapture(CaptureDeletionRequest request)
+    public async Task<ActionResult<ApiResult>> DeleteCapture([FromQuery] Guid captureId)
     {
         try
         {
             var userId = User.GetCfUserId();
-            var result = await _captureService.Delete(userId, request.CaptureId);
-            return result;
+            var result = await _captureService.Delete(userId, captureId);
+            return result.ToActionResult();
         }
         catch (Exception ex) 
         {
             _log.LogError(ex, "Failed to process deletion request.");
-            return StatusCode(StatusCodes.Status500InternalServerError);
+            return ApiResult.Failure().ToActionResult();
         }
     }
     
     [Authorize]
     [HttpGet("list")]
-    public async Task<ActionResult<CaptureListResponse>> GetCaptureList()
+    public async Task<ActionResult<ApiResult<CaptureListResponse>>> GetCaptureList()
     {
         try
         {
             var userId = User.GetCfUserId();
             var result = await _captureService.GetCaptures(userId);
-            return Ok(result);
+            return result.ToActionResult();
         }
         catch (Exception ex) 
         {
             _log.LogError(ex, "Failed to process capture list request.");
-            return StatusCode(StatusCodes.Status500InternalServerError);
+            return ApiResult<CaptureListResponse>.Failure().ToActionResult();
         }
     }
 }

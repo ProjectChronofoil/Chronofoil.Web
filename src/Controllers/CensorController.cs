@@ -1,4 +1,5 @@
-﻿using Chronofoil.Common.Censor;
+﻿using Chronofoil.Common;
+using Chronofoil.Common.Censor;
 using Chronofoil.Web.Services.Censor;
 using Chronofoil.Web.Utils;
 using Microsoft.AspNetCore.Authorization;
@@ -7,13 +8,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace Chronofoil.Web.Controllers;
 
 [ApiController]
-[Route("api/censor")]
+[Route(Routes.CensorV1)]
 public class CensorController : Controller
 {
     private readonly ILogger<CensorController> _log;
-    private readonly CensorService _censorService;
+    private readonly ICensorService _censorService;
 
-    public CensorController(ILogger<CensorController> log, CensorService censorService)
+    public CensorController(ILogger<CensorController> log, ICensorService censorService)
     {
         _log = log;
         _censorService = censorService;
@@ -21,37 +22,36 @@ public class CensorController : Controller
     
     [Authorize]
     [HttpPost("found")]
-    public async Task<IActionResult> FoundOpcodes([FromBody] FoundOpcodesRequest request)
+    public async Task<ActionResult<ApiResult>> FoundOpcodes(FoundOpcodesRequest request)
     {
         _log.LogInformation("[FoundOpcodes] request: {request}", request);
         try
         {
-            // var userId = User.GetCfUserId();
-            var userId = Guid.NewGuid();
+            var userId = User.GetCfUserId();
             var result = await _censorService.ProcessFoundOpcodes(userId, request);
-            return result ? Ok() : BadRequest();
+            return result.ToActionResult();
         }
         catch (Exception ex) 
         {
             _log.LogError(ex, "Failed to process opcode request.");
-            return StatusCode(StatusCodes.Status500InternalServerError);
+            return ApiResult.Failure().ToActionResult();
         }
     }
     
     [Authorize]
     [HttpGet("opcodes")]
-    public async Task<ActionResult<CensoredOpcodesResponse>> GetOpcodes(CensoredOpcodesRequest request)
+    public async Task<ActionResult<ApiResult<CensoredOpcodesResponse>>> GetOpcodes([FromQuery] string gameVersion)
     {
-        _log.LogInformation("[GetOpcodes] request: {request}", request);
+        _log.LogInformation("[GetOpcodes] gameVersion: {version}", gameVersion);
         try
         {
-            var result = await _censorService.GetCurrentOpcodes(request.GameVersion);
-            return Ok(result);
+            var result = await _censorService.GetCurrentOpcodes(gameVersion);
+            return result.ToActionResult();
         }
         catch (Exception ex) 
         {
             _log.LogError(ex, "Failed to process opcode request.");
-            return StatusCode(StatusCodes.Status500InternalServerError);
+            return ApiResult<CensoredOpcodesResponse>.Failure().ToActionResult();
         }
     }
 }
