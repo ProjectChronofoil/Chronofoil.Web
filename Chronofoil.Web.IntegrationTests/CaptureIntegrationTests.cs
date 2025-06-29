@@ -20,6 +20,7 @@ public class CaptureIntegrationTests : IClassFixture<ApiIntegrationTestFixture>
     {
         _fixture = fixture;
         _ = _fixture.Respawner.ResetAsync();
+        Directory.CreateDirectory("upload_data");
         File.Delete($"upload_data/{_testCaptureId}.ccfcap");
     }
 
