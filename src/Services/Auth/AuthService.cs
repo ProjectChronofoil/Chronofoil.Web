@@ -4,15 +4,14 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using Chronofoil.Common;
 using Chronofoil.Common.Auth;
 using Chronofoil.Web.Persistence;
 using Chronofoil.Web.Services.Auth.External;
 using Chronofoil.Web.Services.Database;
 using Chronofoil.Web.Services.Info;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using OneOf;
 
 namespace Chronofoil.Web.Services.Auth;
 
@@ -20,8 +19,8 @@ public class AuthService : IAuthService
 {
     private readonly IConfiguration _config;
     private readonly ILogger<AuthService> _log;
-    private readonly CfDbService _db;
-    private readonly InfoService _infoService;
+    private readonly IDbService _db;
+    private readonly IInfoService _infoService;
     private readonly IServiceProvider _services;
     
     private readonly JwtSecurityTokenHandler _handler = new();
@@ -30,8 +29,8 @@ public class AuthService : IAuthService
     public AuthService(
         IConfiguration config,
         ILogger<AuthService> log,
-        CfDbService db,
-        InfoService infoService,
+        IDbService db,
+        IInfoService infoService,
         IServiceProvider services)
     {
         _log = log;
@@ -43,19 +42,19 @@ public class AuthService : IAuthService
         _localTokenLifetime = TimeSpan.FromHours(Convert.ToDouble(_config["JWT_TokenLifetimeHours"]));
     }
 
-    private async 
-        Task<(AccessTokenResponse? response,
-            IExternalAuthService.UserInfo? userInfo)>
+    public async Task<(AccessTokenResponse? response, IExternalAuthService.UserInfo? userInfo)>
         AuthUser(string provider, string authCode)
     {
         var service = _services.GetRequiredKeyedService<IExternalAuthService>(provider);
         
-        AccessTokenResponse response;
-        IExternalAuthService.UserInfo userInfo;
+        AccessTokenResponse? response;
+        IExternalAuthService.UserInfo? userInfo = null;
         try
         {
             response = await service.ExchangeCodeForTokenAsync(authCode);
-            userInfo = await service.GetUserInfoAsync(response.AccessToken);
+            
+            if (response != null)
+                userInfo = await service.GetUserInfoAsync(response.AccessToken);
         }
         catch (AuthenticationException authEx)
         {
@@ -66,19 +65,19 @@ public class AuthService : IAuthService
         return (response, userInfo);
     }
 
-    private async 
-        Task<(AccessTokenResponse? response,
-            IExternalAuthService.UserInfo? userInfo)>
+    public async Task<(AccessTokenResponse? response, IExternalAuthService.UserInfo? userInfo)>
         RefreshUser(string provider, string refreshCode)
     {
         var service = _services.GetRequiredKeyedService<IExternalAuthService>(provider);
         
-        AccessTokenResponse response;
-        IExternalAuthService.UserInfo userInfo;
+        AccessTokenResponse? response;
+        IExternalAuthService.UserInfo? userInfo = null;
         try
         {
             response = await service.ExchangeRefreshCodeForTokenAsync(refreshCode);
-            userInfo = await service.GetUserInfoAsync(response.AccessToken);
+            
+            if (response != null)
+                userInfo = await service.GetUserInfoAsync(response.AccessToken);
         }
         catch (AuthenticationException authEx)
         {
@@ -126,14 +125,14 @@ public class AuthService : IAuthService
     //     return userInfo;
     // }
 
-    private static string GenerateRefreshToken()
+    public string GenerateRefreshToken()
     {
         var refreshToken = RandomNumberGenerator.GetBytes(32);
         var refreshTokenString = string.Join("", refreshToken.Select(b => b.ToString("x2")));
         return refreshTokenString;
     }
 
-    private string GenerateJwtToken(Guid cfUserId, string userName, string provider, TimeSpan tokenDuration)
+    public string GenerateJwtToken(Guid cfUserId, string userName, string provider, TimeSpan tokenDuration)
     {
         var secretKey = _config["JWT_SecretKey"]!;
         secretKey = Regex.Unescape(secretKey);
@@ -142,12 +141,11 @@ public class AuthService : IAuthService
         var key = Encoding.ASCII.GetBytes(secretKey);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(new[] 
-            {
+            Subject = new ClaimsIdentity([
                 new Claim(ClaimTypes.NameIdentifier, cfUserId.ToString()),
                 new Claim(ClaimTypes.Name, userName),
                 new Claim("AuthProvider", provider)
-            }),
+            ]),
             Issuer = issuer,
             Expires = DateTime.UtcNow.Add(tokenDuration),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -157,14 +155,17 @@ public class AuthService : IAuthService
         return _handler.WriteToken(token);
     }
 
-    public async Task<OneOf<AccessTokenResponse, StatusCodeResult>> Register(string provider, string authCode)
+    public async Task<ApiResult<AccessTokenResponse>> Register(string provider, string authCode)
     {
         var (response, userInfo) = await AuthUser(provider, authCode);
-        if (response == null || userInfo == null) return new StatusCodeResult(StatusCodes.Status403Forbidden);
-        var existingUser = await _db.GetUser(provider, userInfo.UserId);
-        if (existingUser != null) return new StatusCodeResult(StatusCodes.Status403Forbidden);
+        if (response == null || userInfo == null)
+            return ApiResult<AccessTokenResponse>.Failure(ApiStatusCode.AuthProviderAuthFailure);
         
-        var user = new User(Guid.NewGuid(), _infoService.GetCurrentTos().Version, false, false);
+        var existingUser = await _db.GetUser(provider, userInfo.UserId);
+        if (existingUser != null)
+            return ApiResult<AccessTokenResponse>.Failure(ApiStatusCode.UserExists);
+        
+        var user = new User(Guid.NewGuid(), _infoService.GetCurrentTos().Data!.Version, false, false);
         
         var remoteToken = new RemoteTokenInfo(
             Guid.NewGuid(),    
@@ -185,23 +186,27 @@ public class AuthService : IAuthService
         await _db.AddCfToken(localToken);
         await _db.Save();
         
-        return new AccessTokenResponse
+        return ApiResult<AccessTokenResponse>.Success(new AccessTokenResponse
         {
             AccessToken = jwtToken,
             RefreshToken = refreshToken,
             ExpiresIn = (long)_localTokenLifetime.TotalSeconds
-        };
+        });
     }
 
-    public async Task<OneOf<AccessTokenResponse, StatusCodeResult>> Login(string provider, string authCode)
+    public async Task<ApiResult<AccessTokenResponse>> Login(string provider, string authCode)
     {
         var (response, userInfo) = await AuthUser(provider, authCode);
-        if (response == null || userInfo == null) return new StatusCodeResult(StatusCodes.Status403Forbidden);
+        if (response == null || userInfo == null) 
+            return ApiResult<AccessTokenResponse>.Failure(ApiStatusCode.AuthProviderAuthFailure);
 
         var existingRemoteTokenForProvider = await _db.GetRemoteToken(provider, userInfo.UserId);
-        if (existingRemoteTokenForProvider == null) return new StatusCodeResult(StatusCodes.Status403Forbidden);
+        if (existingRemoteTokenForProvider == null)
+            return ApiResult<AccessTokenResponse>.Failure(ApiStatusCode.UserRemoteTokenNotFound);
+        
         var existingUser = await _db.GetUser(existingRemoteTokenForProvider.UserId);
-        if (existingUser == null) return new StatusCodeResult(StatusCodes.Status403Forbidden);
+        if (existingUser == null)
+            return ApiResult<AccessTokenResponse>.Failure(ApiStatusCode.UserNotFound);
         
         var remoteToken = new RemoteTokenInfo(
             Guid.NewGuid(),
@@ -220,16 +225,16 @@ public class AuthService : IAuthService
         await _db.ReplaceRemoteToken(remoteToken);
         await _db.AddCfToken(localToken);
         await _db.Save();
-        
-        return new AccessTokenResponse
+
+        return ApiResult<AccessTokenResponse>.Success(new AccessTokenResponse
         {
             AccessToken = jwtToken,
             RefreshToken = refreshToken,
             ExpiresIn = (long)_localTokenLifetime.TotalSeconds
-        };
+        });
     }
 
-    public async Task<OneOf<AccessTokenResponse, StatusCodeResult>> RefreshToken(string refreshToken)
+    public async Task<ApiResult<AccessTokenResponse>> RefreshToken(string refreshToken)
     {
         var tokenSubLen = Math.Min(refreshToken.Length, 8);
         var tokenSub = refreshToken[..tokenSubLen];
@@ -238,23 +243,24 @@ public class AuthService : IAuthService
         if (oldLocalToken == null)
         {
             _log.LogError("oldLocalToken for {tokenSub} was null!", tokenSub);
-            return new StatusCodeResult(StatusCodes.Status403Forbidden);
+            return ApiResult<AccessTokenResponse>.Failure(ApiStatusCode.UserTokenNotFound);
         }
         var oldRemoteToken = await _db.GetRemoteToken(oldLocalToken.RemoteTokenId);
         if (oldRemoteToken == null)
         {
             _log.LogError("oldRemoteToken for {tokenSub} was null!", tokenSub);
-            return new StatusCodeResult(StatusCodes.Status403Forbidden);
+            return ApiResult<AccessTokenResponse>.Failure(ApiStatusCode.UserRemoteTokenNotFound);
         }
         var user = await _db.GetUser(oldLocalToken.UserId);
         if (user == null)
         {
             _log.LogError("User was null for {tokenSub}?", tokenSub);
-            return new StatusCodeResult(StatusCodes.Status403Forbidden);
+            return ApiResult<AccessTokenResponse>.Failure(ApiStatusCode.UserNotFound);
         }
 
         var (response, userInfo) = await RefreshUser(oldRemoteToken.Provider, oldRemoteToken.RefreshToken);
-        if (response == null || userInfo == null) return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+        if (response == null || userInfo == null)
+            return ApiResult<AccessTokenResponse>.Failure(ApiStatusCode.AuthProviderRefreshFailure);
         
         var jwtToken = GenerateJwtToken(user.CfUserId, userInfo.Username, userInfo.Provider, _localTokenLifetime);
         var newRefreshToken = GenerateRefreshToken();
@@ -275,21 +281,24 @@ public class AuthService : IAuthService
         await _db.AddCfToken(newLocalToken);
         await _db.Save();
 
-        return new AccessTokenResponse
+        return ApiResult<AccessTokenResponse>.Success(new AccessTokenResponse
         {
             AccessToken = jwtToken,
             RefreshToken = newRefreshToken,
             ExpiresIn = (long)_localTokenLifetime.TotalSeconds
-        };
+        });
     }
 
-    public async Task<StatusCodeResult> AcceptTosVersion(Guid userId, int version)
+    public async Task<ApiResult> AcceptTosVersion(Guid userId, int version)
     {
+        var currentTosVersion = _infoService.GetCurrentTos().Data!.Version;
+        if (version != currentTosVersion) return ApiResult.Failure(ApiStatusCode.AuthInvalidTosVersion);
+        
         var user = await _db.GetUser(userId);
-        if (user == null) return new StatusCodeResult(StatusCodes.Status403Forbidden);
+        if (user == null) return ApiResult.Failure(ApiStatusCode.UserNotFound);
 
         user.TosVersion = version;
         await _db.Save();
-        return new OkResult();
+        return ApiResult.Success();
     }
 }

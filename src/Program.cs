@@ -67,17 +67,20 @@ public class Program
         
         builder.Services.AddKeyedScoped<IExternalAuthService, DiscordExternalAuthService>("discord");
         builder.Services.AddDbContext<ChronofoilDbContext>();
-        builder.Services.AddScoped<CfDbService, CfDbService>();
-        builder.Services.AddScoped<AuthService, AuthService>();
-        builder.Services.AddScoped<CensorService, CensorService>();
-        builder.Services.AddScoped<CaptureService, CaptureService>();
-        builder.Services.AddScoped<InfoService, InfoService>();
-
-        builder.Services.AddMetricServer(options =>
+        builder.Services.AddScoped<IDbService, CfDbService>();
+        builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<ICensorService, CensorService>();
+        builder.Services.AddScoped<ICaptureService, CaptureService>();
+        builder.Services.AddScoped<IInfoService, InfoService>();
+        
+        if (builder.Environment.IsEnvironment("Staging") || builder.Environment.IsEnvironment("Production"))
         {
-            options.Url = "/metrics";
-            options.Port = 9184;
-        });
+            builder.Services.AddMetricServer(options =>
+            {
+                options.Url = "/metrics";
+                options.Port = 9184;
+            });   
+        }
         
         var app = builder.Build();
         

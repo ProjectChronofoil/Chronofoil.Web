@@ -1,8 +1,7 @@
 ﻿services:
   web:
-    build:
-      context: .
-      dockerfile: ./src/Development.Dockerfile
+    container_name: cf_dev
+    image: mcr.microsoft.com/dotnet/sdk:9.0
     volumes:
       - ./:/app/
       - ./web_data/:/web_data/

@@ -1,10 +1,11 @@
 ﻿using System.Globalization;
 using System.Text.Json;
+using Chronofoil.Common;
 using Chronofoil.Common.Info;
 
 namespace Chronofoil.Web.Services.Info;
 
-public class InfoService
+public class InfoService : IInfoService
 {
     private readonly FaqResponse _faq;
     private readonly List<TosResponse> _tosRegistry;
@@ -23,16 +24,16 @@ public class InfoService
         };
     }
     
-    public FaqResponse GetCurrentFaq()
+    public ApiResult<FaqResponse> GetCurrentFaq()
     {
-        return _faq;
+        return ApiResult<FaqResponse>.Success(_faq);
     } 
 
-    public TosResponse GetCurrentTos()
+    public ApiResult<TosResponse> GetCurrentTos()
     {
         var currentDate = DateTime.UtcNow;
         var last = _tosRegistry.FindLast(tos => tos.EnactedDate <= currentDate);
         if (last == null) throw new Exception("lol idk");
-        return last;
+        return new ApiResult<TosResponse>(last);
     }
 }

@@ -1,24 +1,23 @@
 using Chronofoil.CaptureFile;
 using Chronofoil.CaptureFile.Generated;
+using Chronofoil.Common;
 using Chronofoil.Common.Capture;
 using Chronofoil.Web.Persistence;
 using Chronofoil.Web.Services.Database;
-using Microsoft.AspNetCore.Mvc;
-using OneOf;
 
 namespace Chronofoil.Web.Services.Capture;
 
-public class CaptureService
+public class CaptureService : ICaptureService
 {
     private readonly ILogger<CaptureService> _logger;
-    private readonly IServiceProvider _services;
+    private readonly IDbService _db;
     
     private readonly string _uploadDirectory; 
     
-    public CaptureService(ILogger<CaptureService> logger, IConfiguration config, IServiceProvider services)
+    public CaptureService(ILogger<CaptureService> logger, IConfiguration config, IDbService db)
     {
         _logger = logger;
-        _services = services;
+        _db = db;
         _uploadDirectory = config["UploadDirectory"]!;
         if (!Directory.Exists(_uploadDirectory))
             Directory.CreateDirectory(_uploadDirectory);
@@ -48,7 +47,7 @@ public class CaptureService
             return false;
         }
 
-        if (detectedId != captureId || captureId != request.CaptureId)
+        if (detectedId != captureId || captureId != request.CaptureId || detectedId != request.CaptureId)
         {
             _logger.LogError("Detected ID did not match provided ID from either the file or the request.");
             return false;   
@@ -104,22 +103,18 @@ public class CaptureService
         return true;
     }
 
-    public async Task<OneOf<CaptureUploadResponse, StatusCodeResult>> 
+    public async Task<ApiResult<CaptureUploadResponse>> 
         Upload(Guid userId, CaptureUploadRequest request, IFormFile file)
     {
-        var scopeFactory = _services.GetRequiredService<IServiceScopeFactory>();
-        using var scope = scopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CfDbService>();
-        
         var captureId = request.CaptureId;
-        if (await db.GetUploadById(captureId) != null)
-            return new StatusCodeResult(StatusCodes.Status409Conflict);
+        if (await _db.GetUploadById(captureId) != null)
+            return ApiResult<CaptureUploadResponse>.Failure(ApiStatusCode.CaptureExists);
 
         var outPath = Path.Combine(_uploadDirectory, $"{captureId}.ccfcap");
         if (File.Exists(outPath))
         {
             _logger.LogError("Got past DB upload check but file already exists?");
-            return new StatusCodeResult(StatusCodes.Status409Conflict);
+            return ApiResult<CaptureUploadResponse>.Failure(ApiStatusCode.CaptureExists);
         }
 
         {
@@ -130,7 +125,8 @@ public class CaptureService
         if (!ValidateCapture(outPath, request, out var captureInfo) || captureInfo == null)
         {
             _logger.LogError("Capture {captureId} failed validation", request.CaptureId);
-            return new StatusCodeResult(StatusCodes.Status400BadRequest);
+            if (File.Exists(outPath)) File.Delete(outPath);
+            return ApiResult<CaptureUploadResponse>.Failure(ApiStatusCode.CaptureNotValid);
         }
         
         var metricTime = request.MetricTime.ToUniversalTime();
@@ -144,35 +140,32 @@ public class CaptureService
             request.MetricWhenEos,
             publicTime,
             request.PublicWhenEos);
-        await db.AddUpload(dbUpload);
-        await db.Save();
-        
-        return new CaptureUploadResponse
+        await _db.AddUpload(dbUpload);
+        await _db.Save();
+
+        return ApiResult<CaptureUploadResponse>.Success(new CaptureUploadResponse
         {
             CaptureId = dbUpload.CfCaptureId,
             MetricTime = dbUpload.MetricTime,
             MetricWhenEos = dbUpload.MetricWhenEos,
             PublicTime = dbUpload.PublicTime,
             PublicWhenEos = dbUpload.PublicWhenEos
-        };
+        });
     }
     
-    public async Task<StatusCodeResult> Delete(Guid userId, Guid captureId)
+    public async Task<ApiResult> Delete(Guid userId, Guid captureId)
     {
         _logger.LogInformation("User {user} removing capture {capture}", userId, captureId);
         
-        var scopeFactory = _services.GetRequiredService<IServiceScopeFactory>();
-        using var scope = scopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CfDbService>();
-
-        var upload = await db.GetUploadById(captureId);
-        if (upload == null) return new NotFoundResult();
+        var upload = await _db.GetUploadById(captureId);
+        if (upload == null) 
+            return ApiResult.Failure(ApiStatusCode.CaptureNotFound);
         if (upload.UserId != userId)
         {
             _logger.LogError("User {user} is not the uploader of {capture}", userId, captureId);
-            return new UnauthorizedResult();
+            return ApiResult.Failure(ApiStatusCode.CaptureNotFoundForUser);
         }
-        db.RemoveUpload(upload);
+        _db.RemoveUpload(upload);
 
         var uploadFile = Path.Combine(_uploadDirectory, $"{captureId}.ccfcap");
         if (!File.Exists(uploadFile))
@@ -184,20 +177,16 @@ public class CaptureService
             File.Delete(uploadFile);   
         }
         
-        await db.Save();
+        await _db.Save();
         
-        return new OkResult();
+        return ApiResult.Success();
     }
     
-    public async Task<CaptureListResponse> GetCaptures(Guid userId)
+    public async Task<ApiResult<CaptureListResponse>> GetCaptures(Guid userId)
     {
         _logger.LogInformation("User {user} requesting capture list", userId);
         
-        var scopeFactory = _services.GetRequiredService<IServiceScopeFactory>();
-        using var scope = scopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CfDbService>();
-
-        var uploads = await db.GetUploads(userId);
+        var uploads = await _db.GetUploads(userId);
         var elements = uploads.Select(upload => new CaptureListElement
         {
             CaptureId = upload.CfCaptureId,
@@ -210,7 +199,7 @@ public class CaptureService
         }).ToList();
         
         _logger.LogInformation("Returning {count} captures", elements.Count);
-        
-        return new CaptureListResponse { Captures = elements };
+
+        return ApiResult<CaptureListResponse>.Success(new CaptureListResponse { Captures = elements });
     }
 }
