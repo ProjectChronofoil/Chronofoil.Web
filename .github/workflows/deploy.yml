@@ -1,15 +1,13 @@
-name: pipeline
+name: deploy
 on:
   push:
-    branches:
-      - "main"
-      - "staging"
+    branches: ["*"]
 
 permissions:
   packages: write
 
-jobs:
-  compile:
+jobs: 
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -22,9 +20,11 @@ jobs:
           dotnet-version: '9.x.x'
       - name: Restore
         run: dotnet restore
-      - name: Compile
-        run: dotnet build --no-restore --configuration Release
-
+      - name: Unit Test
+        run: dotnet test --filter Category=UnitTest
+      - name: Integration Test
+        run: dotnet test --filter Category=IntegrationTest
+  
   identify:
     runs-on: ubuntu-latest
     steps:
@@ -51,9 +51,8 @@ jobs:
   
   build-push:
     runs-on: ubuntu-latest
-    needs:
-      - compile
-      - identify
+    needs: [identify]
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -81,10 +80,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs:
-      - compile
-      - identify
-      - build-push
+    needs: [identify, build-push]
     environment: ${{ needs.identify.outputs.environment }}
     concurrency: deploy-${{ needs.identify.outputs.environment }}
     steps:

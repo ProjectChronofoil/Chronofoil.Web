@@ -6,6 +6,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chronofoil.CaptureFile", "d
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chronofoil.Web", "src\Chronofoil.Web.csproj", "{80ED9D8C-0911-4490-8709-E5B456A723A0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chronofoil.Web.Tests", "Chronofoil.Web.Tests\Chronofoil.Web.Tests.csproj", "{DD48AAB2-1851-41A3-930C-094A4953BCDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chronofoil.Web.IntegrationTests", "Chronofoil.Web.IntegrationTests\Chronofoil.Web.IntegrationTests.csproj", "{29406BBB-E462-48CC-AEE5-C5F36BBB77C7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +28,13 @@ Global
 		{80ED9D8C-0911-4490-8709-E5B456A723A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80ED9D8C-0911-4490-8709-E5B456A723A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80ED9D8C-0911-4490-8709-E5B456A723A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD48AAB2-1851-41A3-930C-094A4953BCDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD48AAB2-1851-41A3-930C-094A4953BCDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD48AAB2-1851-41A3-930C-094A4953BCDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD48AAB2-1851-41A3-930C-094A4953BCDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29406BBB-E462-48CC-AEE5-C5F36BBB77C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29406BBB-E462-48CC-AEE5-C5F36BBB77C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29406BBB-E462-48CC-AEE5-C5F36BBB77C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29406BBB-E462-48CC-AEE5-C5F36BBB77C7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
