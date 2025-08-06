@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Prometheus;
 using Serilog;
+using Serilog.Context;
 
 namespace Chronofoil.Web;
 
@@ -96,6 +97,13 @@ public class Program
         app.MapControllers();
 
         Migrate(app);
+
+        app.Use(async (context, next) =>
+        {
+            var ua = context.Request.Headers.UserAgent;
+            using var _ = LogContext.PushProperty("UserAgent", ua);
+            await next.Invoke();
+        });
 
         app.Run();
     }
