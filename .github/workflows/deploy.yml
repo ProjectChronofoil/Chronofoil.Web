@@ -123,6 +123,8 @@ jobs:
           echo 'JWT_SecretKey=${{ secrets.JWT_SECRET }}' >> $environment.env
           echo "Discord_ClientId=${{ vars.DISCORD_CLIENT_ID }}" >> $environment.env
           echo "Discord_ClientSecret=${{ secrets.DISCORD_CLIENT_SECRET }}" >> $environment.env
+          echo "S3_AccessKey=${{ secrets.S3_ACCESS_KEY }}" >> $environment.env
+          echo "S3_SecretKey=${{ secrets.S3_SECRET_KEY }}" >> $environment.env
       - name: Deploy with Docker Stack
         run: |
           docker context create remote --docker "host=ssh://${{ vars.ENV_USER }}@${{ vars.ENV_HOSTNAME }}"
