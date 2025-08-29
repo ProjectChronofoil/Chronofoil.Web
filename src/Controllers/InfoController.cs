@@ -1,7 +1,5 @@
 ﻿using Chronofoil.Common;
-using Chronofoil.Common.Auth;
 using Chronofoil.Common.Info;
-using Chronofoil.Web.Services.Auth;
 using Chronofoil.Web.Services.Info;
 using Chronofoil.Web.Utils;
 using Microsoft.AspNetCore.Mvc;
