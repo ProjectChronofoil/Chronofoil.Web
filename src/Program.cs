@@ -1,6 +1,8 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Amazon.Runtime;
+using Amazon.S3;
 using Chronofoil.Web.Persistence;
 using Chronofoil.Web.Services.Auth;
 using Chronofoil.Web.Services.Auth.External;
@@ -8,6 +10,7 @@ using Chronofoil.Web.Services.Capture;
 using Chronofoil.Web.Services.Censor;
 using Chronofoil.Web.Services.Database;
 using Chronofoil.Web.Services.Info;
+using Chronofoil.Web.Services.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -73,6 +76,24 @@ public class Program
         builder.Services.AddScoped<ICensorService, CensorService>();
         builder.Services.AddScoped<ICaptureService, CaptureService>();
         builder.Services.AddScoped<IInfoService, InfoService>();
+
+        builder.Services.AddScoped<IAmazonS3>(provider =>
+        {
+            var config = provider.GetService<IConfiguration>()!;
+            var s3Config = new AmazonS3Config
+            {
+                ServiceURL = config["S3_Endpoint"],
+                ForcePathStyle = true,
+                RequestChecksumCalculation = RequestChecksumCalculation.WHEN_SUPPORTED,
+                ResponseChecksumValidation = ResponseChecksumValidation.WHEN_SUPPORTED
+            };
+            
+            return new AmazonS3Client(
+                config["S3_AccessKey"],
+                config["S3_SecretKey"],
+                s3Config);
+        });
+        builder.Services.AddScoped<IStorageService, S3StorageService>();
         
         if (builder.Environment.IsEnvironment("Staging") || builder.Environment.IsEnvironment("Production"))
         {
