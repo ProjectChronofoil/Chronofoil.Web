@@ -10,7 +10,6 @@ using Chronofoil.Web.Persistence;
 using Chronofoil.Web.Services.Auth.External;
 using Chronofoil.Web.Services.Database;
 using Chronofoil.Web.Services.Info;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Chronofoil.Web.Services.Auth;

@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using Chronofoil.Common;
+﻿using Chronofoil.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chronofoil.Web.Tests;
