@@ -1,12 +1,15 @@
-using System.ComponentModel;
+using System.Net;
 using System.Text;
 using System.Text.Json;
+using Amazon.S3;
+using Amazon.S3.Model;
 using Chronofoil.Common;
 using Chronofoil.Common.Auth;
 using Chronofoil.Common.Capture;
 using Refit;
 using Shouldly;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Chronofoil.Web.IntegrationTests;
 
@@ -20,8 +23,20 @@ public class CaptureIntegrationTests : IClassFixture<ApiIntegrationTestFixture>
     {
         _fixture = fixture;
         _ = _fixture.Respawner.ResetAsync();
-        Directory.CreateDirectory("upload_data");
-        File.Delete($"upload_data/{_testCaptureId}.ccfcap");
+        _ = CleanupS3File(_testCaptureId);
+    }
+
+    private async Task CleanupS3File(Guid captureId)
+    {
+        try
+        {
+            var key = $"{captureId}.ccfcap";
+            await _fixture.S3Client.DeleteObjectAsync("test-bucket", key);
+        }
+        catch
+        {
+            // ignored
+        }
     }
 
     private async Task<string> GetAuthToken(string authCode)
@@ -51,6 +66,46 @@ public class CaptureIntegrationTests : IClassFixture<ApiIntegrationTestFixture>
 
         var result = await _fixture.ApiClient.UploadCapture(token, metaPart, capturePart);
         return result;
+    }
+
+    private async Task<bool> FileExistsInS3(Guid captureId)
+    {
+        var key = $"{captureId}.ccfcap";
+        try
+        {
+            var request = new GetObjectRequest
+            {
+                BucketName = "test-bucket",
+                Key = key
+            };
+            await _fixture.S3Client.GetObjectAsync(request);
+            return true;
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+    }
+
+    private async Task<byte[]?> GetFileFromS3(Guid captureId)
+    {
+        var key = $"{captureId}.ccfcap";
+        try
+        {
+            var request = new GetObjectRequest
+            {
+                BucketName = "test-bucket",
+                Key = key
+            };
+            using var response = await _fixture.S3Client.GetObjectAsync(request);
+            using var memoryStream = new MemoryStream();
+            await response.ResponseStream.CopyToAsync(memoryStream);
+            return memoryStream.ToArray();
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
     }
 
     [Fact]
@@ -144,6 +199,14 @@ public class CaptureIntegrationTests : IClassFixture<ApiIntegrationTestFixture>
         uploadResult.StatusCode.ShouldBe(ApiStatusCode.Success);
         uploadResult.Data.ShouldNotBeNull();
         uploadResult.Data.CaptureId.ShouldBe(_testCaptureId);
+        
+        var fileExists = await FileExistsInS3(_testCaptureId);
+        fileExists.ShouldBeTrue();
+        
+        var storedFile = await GetFileFromS3(_testCaptureId);
+        storedFile.ShouldNotBeNull();
+        var originalFile = GetTestCapture(true);
+        storedFile.ShouldBe(originalFile);
 
         var listResult = await _fixture.ApiClient.GetCaptureList(token);
         listResult.ShouldNotBeNull();
@@ -169,10 +232,16 @@ public class CaptureIntegrationTests : IClassFixture<ApiIntegrationTestFixture>
         
         var uploadResult = await UploadTestCapture(token, _testCaptureId, request);
         uploadResult.StatusCode.ShouldBe(ApiStatusCode.Success);
+        
+        var fileExists = await FileExistsInS3(_testCaptureId);
+        fileExists.ShouldBeTrue();
 
         var deleteResult = await _fixture.ApiClient.DeleteCapture(token, _testCaptureId);
         deleteResult.ShouldNotBeNull();
         deleteResult.StatusCode.ShouldBe(ApiStatusCode.Success);
+        
+        var fileExistsAfterDelete = await FileExistsInS3(_testCaptureId);
+        fileExistsAfterDelete.ShouldBeFalse();
         
         var listResult = await _fixture.ApiClient.GetCaptureList(token);
         listResult.Data!.Captures.ShouldBeEmpty();
