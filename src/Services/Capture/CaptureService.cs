@@ -186,7 +186,7 @@ public class CaptureService : ICaptureService
         {
             ["capture_id"] = captureInfo.CaptureId,
             ["capture_start_time"] = captureInfo.CaptureStartTime.ToString(),
-            ["capture_end_time"] = captureInfo.CaptureStartTime.ToString(),
+            ["capture_end_time"] = captureInfo.CaptureEndTime.ToString(),
             ["metric_time"] = request.MetricTime.ToString(CultureInfo.InvariantCulture),
             ["metric_when_eos"] = request.MetricWhenEos.ToString(),
             ["public_time"] = request.PublicTime.ToString(CultureInfo.InvariantCulture),
