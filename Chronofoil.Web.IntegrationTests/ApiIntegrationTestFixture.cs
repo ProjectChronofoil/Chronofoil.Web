@@ -67,6 +67,7 @@ public class ApiIntegrationTestFixture : IAsyncLifetime
                         ["S3_BucketName"] = "test-bucket",
                         ["S3_AccessKey"] = "test",
                         ["S3_SecretKey"] = "test",
+                        ["S3_DisablePayloadSigning"] = "false",
                         ["S3_Endpoint"] = _storageContainer.GetConnectionString(),
                     }!);
                 });

@@ -8,12 +8,14 @@ public class S3StorageService : IStorageService
 {
     private readonly IAmazonS3 _s3Client;
     private readonly string _bucketName;
+    private readonly bool _disablePayloadSigning;
     private readonly ILogger<S3StorageService> _logger;
 
     public S3StorageService(IAmazonS3 s3Client, IConfiguration configuration, ILogger<S3StorageService> logger)
     {
         _s3Client = s3Client;
         _bucketName = configuration["S3_BucketName"]!;
+        _disablePayloadSigning = configuration.GetValue("S3_DisablePayloadSigning", true);
         _logger = logger;
     }
 
@@ -27,7 +29,8 @@ public class S3StorageService : IStorageService
                 Key = fileName,
                 InputStream = fileStream,
                 ContentType = "application/octet-stream",
-                DisableDefaultChecksumValidation = true
+                DisableDefaultChecksumValidation = true,
+                DisablePayloadSigning = _disablePayloadSigning,
             };
             
             if (metadata != null)
