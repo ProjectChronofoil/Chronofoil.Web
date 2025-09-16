@@ -107,8 +107,7 @@ public class CensorIntegrationTests : IClassFixture<ApiIntegrationTestFixture>
     [Fact]
     public async Task Test_GetOpcodes_Success_NoOpcodes()
     {
-        var token = await GetAuthToken();
-        var result = await _fixture.ApiClient.GetOpcodes(token, GameVersion);
+        var result = await _fixture.ApiClient.GetOpcodes(GameVersion);
         
         result.ShouldNotBeNull();
         result.StatusCode.ShouldBe(ApiStatusCode.Success);
@@ -135,12 +134,87 @@ public class CensorIntegrationTests : IClassFixture<ApiIntegrationTestFixture>
         var foundResult = await _fixture.ApiClient.FoundOpcodes(token, request);
         foundResult.StatusCode.ShouldBe(ApiStatusCode.Success);
         
-        var getResult = await _fixture.ApiClient.GetOpcodes(token, GameVersion);
+        var getResult = await _fixture.ApiClient.GetOpcodes(GameVersion);
         
         getResult.ShouldNotBeNull();
         getResult.StatusCode.ShouldBe(ApiStatusCode.Success);
         getResult.Data.ShouldNotBeNull();
         getResult.Data.GameVersion.ShouldBe(GameVersion);
         getResult.Data.Opcodes.ShouldBe(opcodes);
+    }
+    
+    [Fact]
+    public async Task Test_GetOpcodes_Success_NoCache()
+    {
+        var token = await GetAuthToken();
+        var opcodes = new Dictionary<string, int>
+        {
+            { "ZoneLetterListDown", 123 },
+            { "ZoneLetterUp", 456 }
+        };
+        var request = new FoundOpcodesRequest
+        {
+            GameVersion = GameVersion,
+            Opcodes = opcodes
+        };
+
+        var foundResult = await _fixture.ApiClient.FoundOpcodes(token, request);
+        foundResult.StatusCode.ShouldBe(ApiStatusCode.Success);
+        
+        // Should not cache
+        var getResult = await _fixture.ApiClient.GetOpcodes(GameVersion);
+        
+        getResult.ShouldNotBeNull();
+        getResult.StatusCode.ShouldBe(ApiStatusCode.Success);
+        getResult.Data.ShouldNotBeNull();
+        getResult.Data.GameVersion.ShouldBe(GameVersion);
+        getResult.Data.Opcodes.ShouldBe(opcodes, ignoreOrder: true);
+        
+        getResult = await _fixture.ApiClient.GetOpcodes(GameVersion);
+        
+        getResult.ShouldNotBeNull();
+        getResult.StatusCode.ShouldBe(ApiStatusCode.Success);
+        getResult.Data.ShouldNotBeNull();
+        getResult.Data.GameVersion.ShouldBe(GameVersion);
+        getResult.Data.Opcodes.ShouldBe(opcodes, ignoreOrder: true);
+    }
+    
+    [Fact]
+    public async Task Test_GetOpcodes_Success_WithCache()
+    {
+        var token = await GetAuthToken();
+        var opcodes = new Dictionary<string, int>
+        {
+            { "ZoneLetterListDown", 123 },
+            { "ZoneLetterUp", 456 },
+            { "ZoneLetterDown", 789 },
+            { "ZoneChatUp", 987 },
+            { "ZoneChatDown", 654 },
+        };
+        var request = new FoundOpcodesRequest
+        {
+            GameVersion = GameVersion,
+            Opcodes = opcodes
+        };
+
+        var foundResult = await _fixture.ApiClient.FoundOpcodes(token, request);
+        foundResult.StatusCode.ShouldBe(ApiStatusCode.Success);
+        
+        // Should cache - there are 5 opcodes
+        var getResult = await _fixture.ApiClient.GetOpcodes(GameVersion);
+        
+        getResult.ShouldNotBeNull();
+        getResult.StatusCode.ShouldBe(ApiStatusCode.Success);
+        getResult.Data.ShouldNotBeNull();
+        getResult.Data.GameVersion.ShouldBe(GameVersion);
+        getResult.Data.Opcodes.ShouldBe(opcodes, ignoreOrder: true);
+        
+        getResult = await _fixture.ApiClient.GetOpcodes(GameVersion);
+        
+        getResult.ShouldNotBeNull();
+        getResult.StatusCode.ShouldBe(ApiStatusCode.Success);
+        getResult.Data.ShouldNotBeNull();
+        getResult.Data.GameVersion.ShouldBe(GameVersion);
+        getResult.Data.Opcodes.ShouldBe(opcodes, ignoreOrder: true);
     }
 }

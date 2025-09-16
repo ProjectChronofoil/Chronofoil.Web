@@ -40,7 +40,7 @@ public class CensorTests(ApiTestFixture fixture) : IClassFixture<ApiTestFixture>
             .Setup(s => s.GetCurrentOpcodes(gameVersion))
             .ReturnsAsync(ApiResult<CensoredOpcodesResponse>.Success(expected));
 
-        var result = await fixture.ApiClient.GetOpcodes("unused", gameVersion);
+        var result = await fixture.ApiClient.GetOpcodes(gameVersion);
 
         result.ShouldNotBeNull();
         result.StatusCode.ShouldBe(ApiStatusCode.Success);
