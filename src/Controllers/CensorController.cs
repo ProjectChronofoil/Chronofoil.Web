@@ -38,7 +38,6 @@ public class CensorController : Controller
         }
     }
     
-    [Authorize]
     [HttpGet("opcodes")]
     public async Task<ActionResult<ApiResult<CensoredOpcodesResponse>>> GetOpcodes([FromQuery] string gameVersion)
     {

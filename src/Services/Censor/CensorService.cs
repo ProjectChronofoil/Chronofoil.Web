@@ -41,6 +41,8 @@ public class CensorService : ICensorService
 
     private readonly string[] _validOpcodeKeys = Enum.GetValues<KnownCensoredOpcode>().Select(e => e.ToString()).ToArray();
     private int ValidOpcodeCount => _validOpcodeKeys.Length;
+    
+    private Dictionary<string, CensoredOpcodesResponse> _cachedResponses = new();
 
     public CensorService(ILogger<CensorService> log, IDbService db)
     {
@@ -101,6 +103,9 @@ public class CensorService : ICensorService
     
     public async Task<ApiResult<CensoredOpcodesResponse>> GetCurrentOpcodes(string gameVersion)
     {
+        if (_cachedResponses.TryGetValue(gameVersion, out var cached))
+            return ApiResult<CensoredOpcodesResponse>.Success(cached);
+        
         var result = await _db.GetOpcodes(gameVersion, _validOpcodeKeys);
         var ret = new CensoredOpcodesResponse
         {
@@ -112,6 +117,9 @@ public class CensorService : ICensorService
         {
             ret.Opcodes[op.Key] = op.Opcode;
         }
+        
+        if (ret.Opcodes.Count == _validOpcodeKeys.Length)
+            _cachedResponses[gameVersion] = ret;
 
         return ApiResult<CensoredOpcodesResponse>.Success(ret);
     }
