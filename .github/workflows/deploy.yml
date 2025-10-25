@@ -1,14 +1,56 @@
 name: deploy
 on:
   push:
-    branches: ["*"]
+    branches:
+      - "main"
+      - "staging"
 
 permissions:
   packages: write
 
-jobs: 
+jobs:
+  detect-src-changes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Detect changes in source files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            src/**
+            deps/**
+            src/Dockerfile
+    outputs:
+      should_build: ${{ steps.changed-files.outputs.any_changed }}
+  
+  detect-test-changes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Detect changes in source files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            Chronofoil.Web.IntegrationTests/**
+            Chronofoil.Web.Tests/**
+    outputs:
+      should_test: ${{ steps.changed-files.outputs.any_changed }}
+
   test:
     runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-src-changes.outputs.should_build == 'true' ||
+        needs.detect-test-changes.outputs.should_test == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -52,7 +94,7 @@ jobs:
   build-push:
     runs-on: ubuntu-latest
     needs: [test, identify]
-    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging' }}
+    if: needs.detect-changes.outputs.should_build == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -80,7 +122,11 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: [identify, build-push]
+    needs: [test, identify, build-push]
+    if: |
+      always() && 
+      needs.identify.result == 'success' &&
+      (needs.build-push.result == 'success' || needs.build-push.result == 'skipped')
     environment: ${{ needs.identify.outputs.environment }}
     concurrency: deploy-${{ needs.identify.outputs.environment }}
     steps:
