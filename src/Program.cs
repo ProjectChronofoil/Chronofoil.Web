@@ -25,10 +25,10 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-        
+
         builder.Host.UseSerilog((context, configuration) => configuration.ReadFrom.Configuration(context.Configuration));
         Serilog.Debugging.SelfLog.Enable(TextWriter.Synchronized(Console.Out));
-        
+
         builder.Services.AddControllers()
             .AddJsonOptions(options =>
             {
@@ -36,7 +36,7 @@ public class Program
             });
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
-        
+
         builder.Services
             .AddAuthentication(options =>
             {
@@ -49,7 +49,7 @@ public class Program
 
                 var secretKey = builder.Configuration.GetSection("JWT_SecretKey").Value!;
                 secretKey = Regex.Unescape(secretKey);
-                
+
                 options.Authority = isDev ? "http://localhost:8080" : "https://cf.perchbird.dev";
                 options.Audience = builder.Configuration["JWT_Audience"];
                 options.ClaimsIssuer = builder.Configuration["JWT_Issuer"];
@@ -68,7 +68,7 @@ public class Program
                     options.RequireHttpsMetadata = false;
                 }
             });
-        
+
         builder.Services.AddKeyedScoped<IExternalAuthService, DiscordExternalAuthService>("discord");
         builder.Services.AddDbContext<ChronofoilDbContext>();
         builder.Services.AddScoped<IDbService, CfDbService>();
@@ -87,25 +87,26 @@ public class Program
                 RequestChecksumCalculation = RequestChecksumCalculation.WHEN_SUPPORTED,
                 ResponseChecksumValidation = ResponseChecksumValidation.WHEN_SUPPORTED
             };
-            
+
             return new AmazonS3Client(
                 config["S3_AccessKey"],
                 config["S3_SecretKey"],
                 s3Config);
         });
         builder.Services.AddScoped<IStorageService, S3StorageService>();
-        
+        builder.Services.AddHostedService<MigrationService>();
+
         if (builder.Environment.IsEnvironment("Staging") || builder.Environment.IsEnvironment("Production"))
         {
             builder.Services.AddMetricServer(options =>
             {
                 options.Url = "/metrics";
                 options.Port = 9184;
-            });   
+            });
         }
-        
+
         var app = builder.Build();
-        
+
         if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
         {
             app.UseDeveloperExceptionPage();

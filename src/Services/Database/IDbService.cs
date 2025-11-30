@@ -5,7 +5,7 @@ namespace Chronofoil.Web.Services.Database;
 public interface IDbService
 {
     public Task Save();
-    
+
     public Task AddUser(User user);
     public Task<User?> GetUser(Guid cfUserId);
     public Task<User?> GetUser(string provider, string userId);
@@ -25,6 +25,7 @@ public interface IDbService
     public Task AddUpload(ChronofoilUpload upload);
     public void RemoveUpload(ChronofoilUpload upload);
     public Task<List<ChronofoilUpload>> GetUploads(Guid userId);
+    public Task<List<ChronofoilUpload>> GetAllUploads();
     public Task<ChronofoilUpload?> GetUploadById(Guid id);
 
     public Task<CensoredOpcode?> FindCensorableOpcode(string gameVersion, string key);

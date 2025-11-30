@@ -30,6 +30,8 @@ public class ApiIntegrationTestFixture : IAsyncLifetime
     public RespawnWrapper Respawner { get; set; }
     public IChronofoilClient ApiClient { get; set; }
     public IAmazonS3 S3Client { get; set; }
+    public string DbConnectionString { get; private set; }
+    public string S3ConnectionString { get; private set; }
 
     public async Task InitializeAsync()
     {
@@ -40,9 +42,12 @@ public class ApiIntegrationTestFixture : IAsyncLifetime
             .Build();
 
         _storageContainer = new LocalStackBuilder().Build();
-        
+
         await _dbContainer.StartAsync();
         await _storageContainer.StartAsync();
+
+        DbConnectionString = _dbContainer.GetConnectionString();
+        S3ConnectionString = _storageContainer.GetConnectionString();
 
         _webAppFactory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
@@ -52,7 +57,7 @@ public class ApiIntegrationTestFixture : IAsyncLifetime
                     var connectionString = _dbContainer.GetConnectionString();
                     services.RemoveAll<DbContextOptions<ChronofoilDbContext>>();
                     services.AddDbContext<ChronofoilDbContext>(options => { options.UseNpgsql(connectionString); });
-                    
+
                     services.RemoveAll<IExternalAuthService>();
                     services.AddKeyedScoped<IExternalAuthService, MockExternalAuthService>("testProvider");
                 });
@@ -72,13 +77,13 @@ public class ApiIntegrationTestFixture : IAsyncLifetime
                     }!);
                 });
             });
-        
+
         using var scope = _webAppFactory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ChronofoilDbContext>();
         await dbContext.Database.MigrateAsync();
-        
+
         S3Client = await GetS3Client();
-        
+
         Respawner = await RespawnWrapper.CreateAsync(_dbContainer.GetConnectionString());
 
         var nullTask = Task.FromResult<Exception>(null!);
@@ -87,7 +92,7 @@ public class ApiIntegrationTestFixture : IAsyncLifetime
             ExceptionFactory = _ => nullTask!,
         };
         _httpClient = _webAppFactory.CreateClient();
-        
+
         ApiClient = RestService.For<IChronofoilClient>(_httpClient, refitSettings);
     }
 
@@ -100,13 +105,13 @@ public class ApiIntegrationTestFixture : IAsyncLifetime
             RequestChecksumCalculation = RequestChecksumCalculation.WHEN_SUPPORTED,
             ResponseChecksumValidation = ResponseChecksumValidation.WHEN_SUPPORTED
         };
-            
+
         var s3Client = new AmazonS3Client(
             "test",
             "test",
             s3Config);
         await s3Client.PutBucketAsync(new PutBucketRequest { BucketName = "test-bucket" });
-        
+
         return s3Client;
     }
 
