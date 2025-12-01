@@ -94,7 +94,7 @@ jobs:
   build-push:
     runs-on: ubuntu-latest
     needs: [test, identify]
-    if: needs.detect-changes.outputs.should_build == 'true'
+    if: needs.detect-src-changes.outputs.should_build == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
