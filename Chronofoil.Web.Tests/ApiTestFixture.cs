@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using Amazon.S3;
 using Chronofoil.Common;
 using Chronofoil.Web.Persistence;
 using Chronofoil.Web.Services.Auth;
@@ -8,6 +9,7 @@ using Chronofoil.Web.Services.Capture;
 using Chronofoil.Web.Services.Censor;
 using Chronofoil.Web.Services.Database;
 using Chronofoil.Web.Services.Info;
+using Chronofoil.Web.Services.Storage;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -35,6 +37,7 @@ public class ApiTestFixture : IDisposable
     public Mock<IInfoService> InfoServiceMock { get; } = new();
     public Mock<IExternalAuthService> ExternalAuthServiceMock { get; } = new();
     public Mock<IDbService> DbServiceMock { get; } = new();
+    public Mock<IStorageService> StorageServiceMock { get; } = new();
 
     public ApiTestFixture()
     {
@@ -64,6 +67,9 @@ public class ApiTestFixture : IDisposable
                     services.RemoveAll<IInfoService>();
                     services.RemoveAll<IExternalAuthService>();
                     services.RemoveAll<IDbService>();
+                    services.RemoveAll<IStorageService>();
+                    services.RemoveAll<IAmazonS3>();
+                    services.RemoveAll(typeof(Microsoft.Extensions.Hosting.IHostedService));
 
                     services.AddSingleton(AuthServiceMock.Object);
                     services.AddSingleton(CensorServiceMock.Object);
@@ -71,6 +77,7 @@ public class ApiTestFixture : IDisposable
                     services.AddSingleton(InfoServiceMock.Object);
                     services.AddSingleton(ExternalAuthServiceMock.Object);
                     services.AddSingleton(DbServiceMock.Object);
+                    services.AddSingleton(StorageServiceMock.Object);
 
                     services
                         .AddAuthentication("Test")

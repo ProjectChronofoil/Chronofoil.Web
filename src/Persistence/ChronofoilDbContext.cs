@@ -1,4 +1,3 @@
-using Chronofoil.CaptureFile;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 

@@ -1,9 +1,11 @@
+using System.Globalization;
 using Chronofoil.CaptureFile;
 using Chronofoil.CaptureFile.Generated;
 using Chronofoil.Common;
 using Chronofoil.Common.Capture;
 using Chronofoil.Web.Persistence;
 using Chronofoil.Web.Services.Database;
+using Chronofoil.Web.Services.Storage;
 
 namespace Chronofoil.Web.Services.Capture;
 
@@ -11,20 +13,22 @@ public class CaptureService : ICaptureService
 {
     private readonly ILogger<CaptureService> _logger;
     private readonly IDbService _db;
+    private readonly IStorageService _storageService;
     
-    private readonly string _uploadDirectory; 
-    
-    public CaptureService(ILogger<CaptureService> logger, IConfiguration config, IDbService db)
+    public CaptureService(ILogger<CaptureService> logger, IDbService db, IStorageService storageService)
     {
         _logger = logger;
         _db = db;
-        _uploadDirectory = config["UploadDirectory"]!;
-        if (!Directory.Exists(_uploadDirectory))
-            Directory.CreateDirectory(_uploadDirectory);
+        _storageService = storageService;
     }
 
-    private bool ValidateCapture(string capturePath, CaptureUploadRequest request, out CaptureInfo? captureInfo)
+    private bool ValidateCapture(
+        string capturePath,
+        CaptureUploadRequest request,
+        out VersionInfo? versionInfo, 
+        out CaptureInfo? captureInfo)
     {
+        versionInfo = null;
         captureInfo = null;
         
         var detectedIdString = Path.GetFileNameWithoutExtension(capturePath);
@@ -34,7 +38,7 @@ public class CaptureService : ICaptureService
             return false;
         }
         
-        var captureReader = new CaptureReader(capturePath);
+        using var captureReader = new CaptureReader(capturePath);
         var start = captureReader.CaptureInfo.CaptureStartTime.ToDateTime();
         var end = captureReader.CaptureInfo.CaptureEndTime.ToDateTime();
         
@@ -99,6 +103,7 @@ public class CaptureService : ICaptureService
             return false;
         }
 
+        versionInfo = captureReader.VersionInfo;
         captureInfo = captureReader.CaptureInfo;
         return true;
     }
@@ -110,47 +115,84 @@ public class CaptureService : ICaptureService
         if (await _db.GetUploadById(captureId) != null)
             return ApiResult<CaptureUploadResponse>.Failure(ApiStatusCode.CaptureExists);
 
-        var outPath = Path.Combine(_uploadDirectory, $"{captureId}.ccfcap");
-        if (File.Exists(outPath))
-        {
-            _logger.LogError("Got past DB upload check but file already exists?");
+        var fileMeta = await _storageService.FileExistsAsync($"{captureId}.ccfcap"); 
+        if (fileMeta != null)
             return ApiResult<CaptureUploadResponse>.Failure(ApiStatusCode.CaptureExists);
-        }
 
-        {
-            await using var stream = File.OpenWrite(outPath);
-            await file.OpenReadStream().CopyToAsync(stream);   
-        }
+        var fileName = $"{captureId}.ccfcap";
 
-        if (!ValidateCapture(outPath, request, out var captureInfo) || captureInfo == null)
+        var tempDir = Directory.CreateTempSubdirectory();
+        var tempPath = Path.Combine(tempDir.FullName, fileName);
+        try
         {
-            _logger.LogError("Capture {captureId} failed validation", request.CaptureId);
-            if (File.Exists(outPath)) File.Delete(outPath);
-            return ApiResult<CaptureUploadResponse>.Failure(ApiStatusCode.CaptureNotValid);
-        }
+            await using (var tempStream = File.OpenWrite(tempPath))
+            {
+                await file.OpenReadStream().CopyToAsync(tempStream);
+            }
+
+            var isValid = ValidateCapture(tempPath, request, out var versionInfo, out var captureInfo); 
+            
+            if (!isValid || versionInfo == null || captureInfo == null)
+            {
+                _logger.LogError("Capture {captureId} failed validation", request.CaptureId);
+                return ApiResult<CaptureUploadResponse>.Failure(ApiStatusCode.CaptureNotValid);
+            }
+            
+            var metadata = GetMetadata(request, versionInfo, captureInfo);
+
+            await using var uploadStream = File.OpenRead(tempPath);
+            var uploadResult = await _storageService.UploadFileAsync(fileName, uploadStream, metadata);
+            if (!uploadResult)
+            {
+                _logger.LogError("Failed to upload capture {captureId}", request.CaptureId);
+                return ApiResult<CaptureUploadResponse>.Failure(ApiStatusCode.CaptureUploadFailed);
+            }
         
-        var metricTime = request.MetricTime.ToUniversalTime();
-        var publicTime = request.PublicTime.ToUniversalTime();
-        var dbUpload = new ChronofoilUpload(
-            request.CaptureId,
-            userId,
-            captureInfo.CaptureStartTime.ToDateTime(),
-            captureInfo.CaptureEndTime.ToDateTime(),
-            metricTime,
-            request.MetricWhenEos,
-            publicTime,
-            request.PublicWhenEos);
-        await _db.AddUpload(dbUpload);
-        await _db.Save();
+            var metricTime = request.MetricTime.ToUniversalTime();
+            var publicTime = request.PublicTime.ToUniversalTime();
+            var dbUpload = new ChronofoilUpload(
+                request.CaptureId,
+                userId,
+                captureInfo.CaptureStartTime.ToDateTime(),
+                captureInfo.CaptureEndTime.ToDateTime(),
+                metricTime,
+                request.MetricWhenEos,
+                publicTime,
+                request.PublicWhenEos);
+            await _db.AddUpload(dbUpload);
+            await _db.Save();
 
-        return ApiResult<CaptureUploadResponse>.Success(new CaptureUploadResponse
+            return ApiResult<CaptureUploadResponse>.Success(new CaptureUploadResponse
+            {
+                CaptureId = dbUpload.CfCaptureId,
+                MetricTime = dbUpload.MetricTime,
+                MetricWhenEos = dbUpload.MetricWhenEos,
+                PublicTime = dbUpload.PublicTime,
+                PublicWhenEos = dbUpload.PublicWhenEos
+            });
+        }
+        finally
         {
-            CaptureId = dbUpload.CfCaptureId,
-            MetricTime = dbUpload.MetricTime,
-            MetricWhenEos = dbUpload.MetricWhenEos,
-            PublicTime = dbUpload.PublicTime,
-            PublicWhenEos = dbUpload.PublicWhenEos
-        });
+            tempDir.Delete(recursive: true);
+        }
+    }
+
+    private Dictionary<string, string> GetMetadata(
+        CaptureUploadRequest request, 
+        VersionInfo versionInfo,
+        CaptureInfo captureInfo)
+    {
+        return new Dictionary<string, string>
+        {
+            ["capture_id"] = captureInfo.CaptureId,
+            ["capture_start_time"] = captureInfo.CaptureStartTime.ToString(),
+            ["capture_end_time"] = captureInfo.CaptureEndTime.ToString(),
+            ["metric_time"] = request.MetricTime.ToString(CultureInfo.InvariantCulture),
+            ["metric_when_eos"] = request.MetricWhenEos.ToString(),
+            ["public_time"] = request.PublicTime.ToString(CultureInfo.InvariantCulture),
+            ["public_when_eos"] = request.PublicWhenEos.ToString(),
+            ["game_version"] = versionInfo.GameVer[0]
+        };
     }
     
     public async Task<ApiResult> Delete(Guid userId, Guid captureId)
@@ -167,14 +209,11 @@ public class CaptureService : ICaptureService
         }
         _db.RemoveUpload(upload);
 
-        var uploadFile = Path.Combine(_uploadDirectory, $"{captureId}.ccfcap");
-        if (!File.Exists(uploadFile))
+        var fileName = $"{captureId}.ccfcap";
+        var deleteResult = await _storageService.DeleteFileAsync(fileName);
+        if (!deleteResult)
         {
-            _logger.LogError("Tried to delete capture {guid} but couldn't find file at expected location {dir}", captureId, uploadFile);
-        }
-        else
-        {
-            File.Delete(uploadFile);   
+            _logger.LogWarning("Failed to delete file {fileName} from S3, but continuing with database cleanup", fileName);
         }
         
         await _db.Save();

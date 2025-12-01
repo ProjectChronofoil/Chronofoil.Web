@@ -28,7 +28,7 @@ public class CfDbService : IDbService
             _log.LogInformation("User already exists.");
             return;
         }
-        
+
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
         _log.LogInformation("User {id} added successfully.", user.CfUserId);
@@ -38,7 +38,7 @@ public class CfDbService : IDbService
     {
         await _db.CfTokens.AddAsync(token);
     }
-    
+
     public async Task AddRemoteToken(RemoteTokenInfo token)
     {
         await _db.RemoteTokens.AddAsync(token);
@@ -68,7 +68,7 @@ public class CfDbService : IDbService
         var token = await _db
             .CfTokens
             .FirstOrDefaultAsync(t => t.RefreshToken == refreshToken);
-        
+
         return token;
     }
 
@@ -80,7 +80,7 @@ public class CfDbService : IDbService
             .ToListAsync();
         return tokens;
     }
-    
+
     public async Task<RemoteTokenInfo?> GetRemoteToken(Guid guid)
     {
         var token = await _db
@@ -101,7 +101,7 @@ public class CfDbService : IDbService
     {
         var oldRemoteToken = await GetRemoteToken(newRemoteToken.Provider, newRemoteToken.ProviderUserId);
         if (oldRemoteToken == null) return;
-        
+
         var existingTokens = await GetCfTokens(oldRemoteToken.TokenId);
         foreach (var existingToken in existingTokens)
             existingToken.RemoteTokenId = newRemoteToken.TokenId;
@@ -120,11 +120,16 @@ public class CfDbService : IDbService
         return await _db.Uploads.Where(u => u.UserId == userId).ToListAsync();
     }
 
+    public async Task<List<ChronofoilUpload>> GetAllUploads()
+    {
+        return await _db.Uploads.ToListAsync();
+    }
+
     public async Task AddUpload(ChronofoilUpload upload)
     {
         await _db.Uploads.AddAsync(upload);
     }
-    
+
     public void RemoveUpload(ChronofoilUpload upload)
     {
         _db.Uploads.Remove(upload);
@@ -154,7 +159,7 @@ public class CfDbService : IDbService
     // {
     //     await _db.Opcodes.AddAsync(new CensoredOpcode { GameVersion = opcode.GameVersion, Key = opcode.Key, Opcode = opcode.Opcode });
     // }
-    
+
     public async Task AddCensorableOpcode(string gameVersion, string key, int value)
     {
         await _db.Opcodes.AddAsync(new CensoredOpcode { GameVersion = gameVersion, Key = key, Opcode = value });
