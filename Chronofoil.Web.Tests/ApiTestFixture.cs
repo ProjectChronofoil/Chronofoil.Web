@@ -69,6 +69,7 @@ public class ApiTestFixture : IDisposable
                     services.RemoveAll<IDbService>();
                     services.RemoveAll<IStorageService>();
                     services.RemoveAll<IAmazonS3>();
+                    services.RemoveAll(typeof(Microsoft.Extensions.Hosting.IHostedService));
 
                     services.AddSingleton(AuthServiceMock.Object);
                     services.AddSingleton(CensorServiceMock.Object);

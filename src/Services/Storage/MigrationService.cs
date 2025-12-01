@@ -18,12 +18,6 @@ public class MigrationService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var shouldMigrate = _configuration.GetValue<bool>("MigrateStorage");
-        if (!shouldMigrate)
-        {
-            return;
-        }
-
         _logger.LogInformation("Starting storage migration...");
 
         using var scope = _serviceProvider.CreateScope();
@@ -41,6 +35,12 @@ public class MigrationService : BackgroundService
         var count = 0;
         var total = uploads.Count;
 
+        // Get list of all existing files in S3 once
+        _logger.LogInformation("Fetching existing files from S3...");
+        var existingFiles = await storage.ListFilesAsync();
+        var existingFileSet = new HashSet<string>(existingFiles);
+        _logger.LogInformation("Found {count} existing files in S3", existingFileSet.Count);
+
         foreach (var upload in uploads)
         {
             if (stoppingToken.IsCancellationRequested) break;
@@ -48,8 +48,7 @@ public class MigrationService : BackgroundService
             var fileName = $"{upload.CfCaptureId}.ccfcap";
 
             // Check if already in S3
-            var exists = await storage.FileExistsAsync(fileName);
-            if (exists != null)
+            if (existingFileSet.Contains(fileName))
             {
                 continue;
             }

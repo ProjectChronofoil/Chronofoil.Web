@@ -88,6 +88,9 @@ public class MigrationIntegrationTests : IClassFixture<ApiIntegrationTestFixture
                 });
             });
 
+        // Create the S3 bucket before triggering startup
+        await _fixture.S3Client.PutBucketAsync(new PutBucketRequest { BucketName = "test-bucket" });
+
         // Trigger startup
         var client = factory.CreateClient();
 

@@ -32,7 +32,7 @@ public class S3StorageService : IStorageService
                 DisableDefaultChecksumValidation = true,
                 DisablePayloadSigning = _disablePayloadSigning,
             };
-            
+
             if (metadata != null)
             {
                 foreach (var (key, val) in metadata)
@@ -42,7 +42,7 @@ public class S3StorageService : IStorageService
             }
 
             var response = await _s3Client.PutObjectAsync(request);
-            
+
             if (response.HttpStatusCode == HttpStatusCode.OK)
             {
                 _logger.LogInformation("Uploaded {fileName} to S3", fileName);
@@ -70,7 +70,7 @@ public class S3StorageService : IStorageService
             };
 
             var response = await _s3Client.DeleteObjectAsync(request);
-            
+
             if (response.HttpStatusCode == HttpStatusCode.NoContent)
             {
                 _logger.LogInformation("Successfully deleted file {fileName} from S3", fileName);
@@ -98,7 +98,7 @@ public class S3StorageService : IStorageService
             };
 
             var response = await _s3Client.GetObjectAsync(request);
-            
+
             if (response.HttpStatusCode == HttpStatusCode.OK)
             {
                 _logger.LogInformation("Successfully retrieved file {fileName} from S3", fileName);
@@ -131,7 +131,7 @@ public class S3StorageService : IStorageService
             };
 
             var response = await _s3Client.GetObjectMetadataAsync(request);
-            
+
             if (response.HttpStatusCode == HttpStatusCode.OK)
             {
                 return response.Metadata;
@@ -150,5 +150,47 @@ public class S3StorageService : IStorageService
             _logger.LogError(ex, "Exception occurred while retrieving file {fileName} from S3", fileName);
             return null;
         }
+    }
+
+    public async Task<List<string>> ListFilesAsync()
+    {
+        var files = new List<string>();
+
+        try
+        {
+            var request = new ListObjectsV2Request
+            {
+                BucketName = _bucketName,
+            };
+
+            var isTruncated = false;
+
+            do
+            {
+                var response = await _s3Client.ListObjectsV2Async(request);
+
+                if (response.HttpStatusCode != HttpStatusCode.OK)
+                {
+                    _logger.LogError("Failed to list files in bucket {bucket} in S3. Status: {status}", _bucketName,
+                        response.HttpStatusCode);
+                    return files;
+                }
+
+                if (response.S3Objects != null)
+                {
+                    files.AddRange(response.S3Objects.Select(x => x.Key));
+                }
+
+                request.ContinuationToken = response.NextContinuationToken;
+                isTruncated = response.IsTruncated ?? false;
+            } while (isTruncated);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception occurred while listing files in S3 bucket {bucket}", _bucketName);
+            return files;
+        }
+
+        return files;
     }
 }
