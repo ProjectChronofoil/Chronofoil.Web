@@ -92,9 +92,18 @@ jobs:
       image_tag: ${{ steps.identify_env.outputs.image_tag }}
   
   build-push:
-    runs-on: ubuntu-latest
-    needs: [test, identify]
-    if: needs.detect-src-changes.outputs.should_build == 'true'
+    runs-on: ${{ matrix.runner }}
+    needs: [compile, identify, detect-changes]
+    if: needs.detect-changes.outputs.should_build == 'true'
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+            platform: linux/amd64
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+            platform: linux/arm64
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -113,6 +122,7 @@ jobs:
         with:
           file: ./src/Dockerfile
           context: .
+          provenance: false
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -120,9 +130,36 @@ jobs:
             ghcr.io/projectchronofoil/chronofoilweb:${{ needs.identify.outputs.image_tag }}
             ghcr.io/projectchronofoil/chronofoilweb:${{ github.sha }}
 
+
+  create-manifests:
+    runs-on: ubuntu-latest
+    needs: [identify, build-push, detect-changes]
+    if: needs.detect-changes.outputs.should_build == 'true'
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: https://ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create SHA manifest and push
+        run: |
+          docker manifest create \
+            ghcr.io/projectchronofoil/chronofoilweb:${{ github.sha }} \
+            --amend ghcr.io/projectchronofoil/chronofoilweb:${{ github.sha }}-amd64 \
+            --amend ghcr.io/projectchronofoil/chronofoilweb:${{ github.sha }}-arm64
+          docker manifest push ghcr.io/projectchronofoil/chronofoilweb:${{ github.sha }}
+      - name: Create ${{ needs.identify.outputs.image_tag }} manifest and push
+        run: |
+          docker manifest create \
+            ghcr.io/projectchronofoil/chronofoilweb:${{ needs.identify.outputs.image_tag }} \
+            --amend ghcr.io/projectchronofoil/chronofoilweb:${{ needs.identify.outputs.image_tag }}-amd64 \
+            --amend ghcr.io/projectchronofoil/chronofoilweb:${{ needs.identify.outputs.image_tag }}-arm64
+          docker manifest push ghcr.io/projectchronofoil/chronofoilweb:${{ needs.identify.outputs.image_tag }}
+  
   deploy:
     runs-on: ubuntu-latest
-    needs: [test, identify, build-push]
+    needs: [test, identify, build-push, create-manifests]
     if: |
       always() && 
       needs.identify.result == 'success' &&
