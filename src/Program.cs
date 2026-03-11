@@ -45,12 +45,9 @@ public class Program
             })
             .AddJwtBearer(options =>
             {
-                var isDev = builder.Environment.IsDevelopment();
-
                 var secretKey = builder.Configuration.GetSection("JWT_SecretKey").Value!;
                 secretKey = Regex.Unescape(secretKey);
-
-                options.Authority = isDev ? "http://localhost:8080" : "https://cf.perchbird.dev";
+                
                 options.Audience = builder.Configuration["JWT_Audience"];
                 options.ClaimsIssuer = builder.Configuration["JWT_Issuer"];
                 options.TokenValidationParameters = new TokenValidationParameters
