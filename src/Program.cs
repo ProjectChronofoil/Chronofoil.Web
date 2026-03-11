@@ -77,7 +77,6 @@ public class Program
         builder.Services.AddScoped<ICaptureService, CaptureService>();
         builder.Services.AddScoped<IInfoService, InfoService>();
 
-        // S3
         builder.Services.AddScoped<IAmazonS3>(provider =>
         {
             var config = provider.GetService<IConfiguration>()!;
