@@ -93,7 +93,7 @@ jobs:
   
   build-push:
     runs-on: ${{ matrix.runner }}
-    needs: [test, identify, detect-changes]
+    needs: [test, identify]
     if: needs.detect-changes.outputs.should_build == 'true'
     strategy:
       matrix:
