@@ -127,8 +127,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ghcr.io/projectchronofoil/chronofoilweb:${{ needs.identify.outputs.image_tag }}
-            ghcr.io/projectchronofoil/chronofoilweb:${{ github.sha }}
+            ghcr.io/projectchronofoil/chronofoilweb:${{ needs.identify.outputs.image_tag }}-${{ matrix.arch }}
+            ghcr.io/projectchronofoil/chronofoilweb:${{ github.sha }}-${{ matrix.arch }}
 
   create-manifests:
     runs-on: ubuntu-latest
