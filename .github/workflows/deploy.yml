@@ -175,4 +175,4 @@ jobs:
         run: |
           docker context create remote --docker "host=ssh://${{ vars.ENV_USER }}@${{ vars.ENV_HOSTNAME }}"
           docker context use remote
-          docker stack deploy -c docker-stack.$environment.yml cf-$environment
+          docker stack deploy --prune -c docker-stack.$environment.yml cf-$environment

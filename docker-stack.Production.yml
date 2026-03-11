@@ -1,25 +1,24 @@
 services:
-  caddy:
-    image: caddy:latest
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - caddy_data:/data
-      - caddy_config:/config
-    command: "caddy reverse-proxy --from cf.perchbird.dev --to http://web:80"
-  
   web:
     image: ghcr.io/projectchronofoil/chronofoilweb:latest
     ports:
-      - "9184:9184"
+      - "9185:9184"
     volumes:
       - /var/lib/cf/data/:/web_data/
     env_file:
       - Production.env
-    depends_on:
-      - db
-      - seq_forwarder
+    networks:
+      - default
+      - proxy_net
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+      update_config:
+        parallelism: 1
+        order: stop-first
+        failure_action: rollback
+        monitor: 15s
 
   db:
     image: postgres:17.2-alpine3.21
@@ -28,36 +27,53 @@ services:
       - pg_backup:/pg_backup/
     env_file:
       - Production.env
-    
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+      update_config:
+        parallelism: 1
+        order: stop-first
+        failure_action: rollback
+        monitor: 15s
+
   seq_forwarder:
     image: ghcr.io/perchbirdd/seq-forwarder:latest
     stdin_open: true
     tty: true
     env_file:
       - Production.env
-  
-  node_exporter:
-    image: quay.io/prometheus/node-exporter:latest
-    command:
-      - '--path.rootfs=/host'
-    ports:
-      - "9100:9100"
-    restart: unless-stopped
-    volumes:
-      - '/:/host:ro,rslave'
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+      update_config:
+        parallelism: 1
+        order: stop-first
+        failure_action: rollback
+        monitor: 15s
 
   pg_exporter:
     image: quay.io/prometheuscommunity/postgres-exporter
     command: '--no-collector.stat_bgwriter'
     ports:
-      - "9187:9187"
-    depends_on:
-      - db
+      - "9188:9187"
     env_file:
       - Production.env
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+      update_config:
+        parallelism: 1
+        order: stop-first
+        failure_action: rollback
+        monitor: 15s
+
+networks:
+  proxy_net:
+    external: true
 
 volumes:
   pg_data:
   pg_backup:
-  caddy_data:
-  caddy_config:
