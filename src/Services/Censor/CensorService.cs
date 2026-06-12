@@ -48,6 +48,7 @@ public class CensorService : ICensorService
         "2026.04.21.0000.0000",
         "2026.05.01.0000.0000",
         "2026.05.25.0000.0000",
+        "2026.06.10.0000.0000",
     ];
 
     private readonly ILogger<CensorService> _log;
