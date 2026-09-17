@@ -22,8 +22,6 @@ public class InfoController : Controller
     [HttpGet("tos")]
     public async Task<ActionResult<ApiResult<TosResponse>>> GetTos()
     {
-        _log.LogInformation("TOS");
-        
         try
         {
             return _infoService.GetCurrentTos().ToActionResult();
@@ -38,8 +36,6 @@ public class InfoController : Controller
     [HttpGet("faq")]
     public async Task<ActionResult<ApiResult<FaqResponse>>> GetFaq()
     {
-        _log.LogInformation("FAQ");
-        
         try
         {
             return _infoService.GetCurrentFaq().ToActionResult();
